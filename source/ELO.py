@@ -51,27 +51,38 @@ def return_function(elo_x, elo_y, result, k : int = 20, lam : int = 400):
 
 if __name__ == '__main__':
 
-    lam = 10
-    k = 50
+    lam = 200
+    k = 20
 
-    x = 1200
-    y = 1000
-    
-    elo_x = [x]
-    elo_y = [y]
+    n = 2
+
     import random
-    for i in range (100):
-        p_x, p_y = compute_winning_probability(x, y, lam=lam)
-        print(f"player 1 elo : {x}. player 2 elo : {y}. P(X = 1|Y) = {p_x}. P(Y = 1 | X) = {p_y}")
-        result = (1, 0) if random.uniform(0, 1) < p_x else (0, 1)
-        x, y = return_function(x, y, result, k=k, lam=lam)
-        elo_x.append(x)
-        elo_y.append(y)
+
+    players = [random.randrange(800, 1200) for i in range (n)]
+    
+    elos = [[] for i in range (n)]
+
+    number_of_matches = 100
+
+    for i in range (number_of_matches):
+        matches = [i for i in range (n)]
+        random.shuffle(matches)
+        for j in range (0, len(matches), 2):
+            x = players[matches[j]]
+            y = players[matches[j+1]]
+            p_x, p_y = compute_winning_probability(x, y, lam)
+            u = random.uniform(0, 1)
+            result = (1, 0) if u < p_x else (0, 1)
+            print(f"{u} : {result}")
+            x, y = return_function(x, y, result, k=k, lam=lam)
+            elos[matches[j]].append(x)
+            elos[matches[j+1]].append(y)
     
     from matplotlib import pyplot as plt
 
-    plt.plot([i for i in range (len(elo_x))], elo_x, c = "red", label = "player 1")
-    plt.plot([i for i in range (len(elo_y))], elo_y, c = "green", label = "player 2")
+    for i in range (n):
+        plt.plot([i for i in range (number_of_matches)], elos[i], label = f"player {i}")
+
     plt.legend()
     plt.title("ELO PROGRESSION")
     plt.show()
