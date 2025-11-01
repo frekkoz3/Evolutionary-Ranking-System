@@ -1,6 +1,15 @@
 """
     Final Project for the "Optimization for AI" course.
     Developer : Bredariol Francesco
+    
+    ELO.py:
+
+    This file contains the ELO function algorithm.
+    This file does not provide a tuner for the ELO but just a way to compute it.
+
+    Functions list:
+        - compute_winning_probability(elo_x, elo_y, lam)
+        - return_function(elo_x, elo_y, result, k, lam)
 """
 import numpy as np
 import math
@@ -12,6 +21,8 @@ def compute_winning_probability(elo_x, elo_y, lam : int = 400):
          P(x winning | y its opponent) = 1 / (1 + e^(ELO(Y) - ELO(X))/lam)
 
          This probability is driven by the lamda (lam) factor.
+
+         This probability function could be refactor from the beginning.
     """
     assert isinstance(lam, int)
 
@@ -50,39 +61,5 @@ def return_function(elo_x, elo_y, result, k : int = 20, lam : int = 400):
     return new_elo_x, new_elo_y
 
 if __name__ == '__main__':
-
-    lam = 200
-    k = 20
-
-    n = 2
-
-    import random
-
-    players = [random.randrange(800, 1200) for i in range (n)]
+    pass
     
-    elos = [[] for i in range (n)]
-
-    number_of_matches = 100
-
-    for i in range (number_of_matches):
-        matches = [i for i in range (n)]
-        random.shuffle(matches)
-        for j in range (0, len(matches), 2):
-            x = players[matches[j]]
-            y = players[matches[j+1]]
-            p_x, p_y = compute_winning_probability(x, y, lam)
-            u = random.uniform(0, 1)
-            result = (1, 0) if u < p_x else (0, 1)
-            print(f"{u} : {result}")
-            x, y = return_function(x, y, result, k=k, lam=lam)
-            elos[matches[j]].append(x)
-            elos[matches[j+1]].append(y)
-    
-    from matplotlib import pyplot as plt
-
-    for i in range (n):
-        plt.plot([i for i in range (number_of_matches)], elos[i], label = f"player {i}")
-
-    plt.legend()
-    plt.title("ELO PROGRESSION")
-    plt.show()
