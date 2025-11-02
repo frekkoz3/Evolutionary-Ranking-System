@@ -29,18 +29,19 @@ def play_chomp(rows=4, cols=6, poison_position = [-1, -1], players = [RealIndivi
             if graphics:
                 show_end_screen(turn)
             return result
-            break
 
         turn = turn + 1
         turn = turn % 2
 
 if __name__ == '__main__':
 
-    rows = 10
+    pass
+
+    """rows = 10
     cols = 10
     poison_position = [-1, -1]
     players = [RandomIndividual(), RandomIndividual()]
     graphics = False
 
     result = play_chomp(rows=rows, cols=cols, poison_position=poison_position, players=players, graphics=graphics)
-    print(result)
+    print(result)"""

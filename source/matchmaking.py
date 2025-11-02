@@ -9,3 +9,9 @@
         - matches(individuals)
 """
 from individual import *
+
+def matches(individuals):
+    """
+        This function should provides, given all the individuals, proper matches.
+    """
+    pass

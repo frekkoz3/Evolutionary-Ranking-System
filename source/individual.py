@@ -16,17 +16,26 @@
 """
 import random
 from chomp import Chomp
+from itertools import count
 
 class Individual():
+    _ids = count(0)
 
-    def __init__(self, init_elo = 100, id = 0):
+    def __init__(self, init_elo = 100):
         self.elo = init_elo
-        self.id = id # this should be unique for each individual
+        self.id =  next(Individual._ids)
+        self.elo_history = []
+        self.opponent_history = []
 
     def get_elo(self):
         return self.elo
     
-    def update_elo(self, new_elo):
+    def get_id(self):
+        return self.id
+    
+    def update_elo(self, opponent, new_elo):
+        self.opponent_history.append(opponent.get_id())
+        self.elo_history.append(self.elo)
         self.elo = new_elo
 
     def move(self):
