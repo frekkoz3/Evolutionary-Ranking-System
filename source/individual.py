@@ -19,8 +19,9 @@ from chomp import Chomp
 
 class Individual():
 
-    def __init__(self, init_elo = 100):
+    def __init__(self, init_elo = 100, id = 0):
         self.elo = init_elo
+        self.id = id # this should be unique for each individual
 
     def get_elo(self):
         return self.elo
