@@ -59,5 +59,8 @@ class Chomp:
         clone.game_over = self.game_over
         return clone
     
+    def get_state(self):
+        return self.board
+    
 if __name__ == "__main__":
     pass

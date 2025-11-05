@@ -12,11 +12,12 @@
         - Individual
         - RealIndividual
         - RandomIndividual
-        - GeneticIndividual
+        - GeneticPolicyIndividual
 """
 import random
 from chomp import Chomp
 from itertools import count
+from policy import *
 
 class Individual():
     _ids = count(0)
@@ -58,3 +59,13 @@ class RandomIndividual(Individual):
     
     def move(self, game : Chomp):
         return random.choice(game.valid_moves())
+    
+class GeneticPolicyIndividual(Individual):
+
+    def __init__(self, initial_policy, init_elo = 100):
+        super().__init__(init_elo)
+        self.policy = initial_policy
+
+    def move(self, game : Chomp):
+        state = self.policy.transform(game.get_state())
+        return self.policy[state]
