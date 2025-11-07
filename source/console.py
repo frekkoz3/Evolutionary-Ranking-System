@@ -19,7 +19,11 @@ def show_end_screen(turn):
     print(f"💀  Player {turn} loses 💀".center(50))
     print("="*50)
 
-def play_chomp(rows=4, cols=6, poison_position = [-1, -1], players = [RealIndividual(), RandomIndividual()], graphics = True):
+def play_chomp(players = [RealIndividual(), RandomIndividual()], graphics = True, **kwargs):
+
+    rows = kwargs["rows"]
+    cols = kwargs["cols"]
+    poison_position = kwargs["poison_position"]
 
     game = Chomp(rows=rows, cols=cols, poison_position=poison_position)
     turn = random.randint(0, 1) 

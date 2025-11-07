@@ -13,6 +13,49 @@ import matchmaking as mmk
 import numpy as np
 from matplotlib import pyplot as plt
 
+def show_results(players : list[ind.Individual], log_log = False):
+    """
+        This function shows results in terms of elo obtained by all the players.
+    """
+    number_of_matches = len(players[0].elo_history)
+
+    for player in players:
+        if log_log:
+            plt.plot(np.log([i + 1 for i in range (number_of_matches)]), np.log(player.elo_history))#, label = f"player {i}")
+        else:
+            plt.plot([i + 1 for i in range (number_of_matches)], player.elo_history)#, label = f"player {i}")
+
+    #plt.legend()
+    if log_log:
+        plt.title("LOG LOG ELO PROGRESSION")
+    else:
+        plt.title("ELO PROGRESSION")
+    plt.show()
+
+def config():
+    """
+        This function provide an handler for the configuration via config.json.
+        This config should be able to be consistent with the game played.
+    """
+
+def round(players : list[ind.Individual], play_fun : function, graphics : bool, k : int, lam : int, **kwargs):
+    """
+        This function provide an handler for playing all the rounds one selected the matches. 
+        Please note that one could actually change the game just changing the play_fun.
+        It is just imposed that the play function uses the graphics option (true / false).
+        The k and lam are used from the elo updater.
+    """
+
+    matches = mmk.matches(players)
+    for match in matches:
+        p1, p2 = match
+        x = p1.get_elo()
+        y = p2.get_elo()
+        result = play_fun(players = [p1, p2], graphics = graphics, **kwargs)
+        x, y = elo.return_function(x, y, result, k=k, lam=lam)
+        p1.update_elo(p2, x)
+        p2.update_elo(p1, y)
+
 def play():
     """
         This function should provides the complete wrapper for everything.
@@ -20,6 +63,8 @@ def play():
     """
 
     # --- SETTINGS ---
+
+    # lam, k, n, players, number_of_matches, kwargs = config() 
     
     lam = 400 # lambda for the probability of winning
     k = 40 # 
@@ -35,34 +80,15 @@ def play():
     number_of_matches = 1000
 
     # --- ACTUAL GAMES ---
+    # please note that the actual game played could be anything. It should be sufficient to change the play_fun 
 
-    for i in range (number_of_matches):
-        matches = mmk.matches(players)
-        for match in matches:
-            p1, p2 = match
-            x = p1.get_elo()
-            y = p2.get_elo()
-            result = cns.play_chomp(rows = rows, cols = cols, poison_position=poison_position, players = [p1, p2], graphics=False)
-            x, y = elo.return_function(x, y, result, k=k, lam=lam)
-            p1.update_elo(p2, x)
-            p2.update_elo(p1, y)
-    
+    for _ in range (number_of_matches):
+
+        round(players = players, play_fun = cns.play_chomp, graphics = False, k = k, lam = lam, **{ "rows" : rows, "cols" : cols, "poison_position" : poison_position})
+        
     # --- RESULTS ---
     
-    log_log = False
-
-    for i in range (n):
-        if log_log:
-            plt.plot(np.log([i + 1 for i in range (number_of_matches)]), np.log(players[i].elo_history))#, label = f"player {i}")
-        else:
-            plt.plot([i + 1 for i in range (number_of_matches)], players[i].elo_history)#, label = f"player {i}")
-
-    #plt.legend()
-    if log_log:
-        plt.title("LOG LOG ELO PROGRESSION")
-    else:
-        plt.title("ELO PROGRESSION")
-    plt.show()
+    show_results(players)
 
 if __name__ == '__main__':
     
