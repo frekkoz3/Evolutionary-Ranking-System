@@ -13,8 +13,13 @@ from individual import *
 def matches(individuals):
     """
         This function should provides, given all the individuals, proper matches.
+        In this moment is just a random shuffle.
+        This function returns a list of tuples, each of them containing two individuals.
     """
-    pass
+
+    idxs = [i for i in range (len(individuals))]
+    random.shuffle(idxs)
+    return [(individuals[idxs[i]], individuals[idxs[i+1]]) for i in range (0, len(idxs), 2)]
 
 if __name__ == '__main__':
     
