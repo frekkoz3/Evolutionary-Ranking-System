@@ -53,3 +53,7 @@ class Policy():
             It is not constrained to be an RL update method, it could also be a GP method or whatever.
         """
         self.policy_grid[self.last_decision] += reward # this is completely wrong, just to put some code here
+
+if __name__ == '__main__':
+    
+    pass

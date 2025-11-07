@@ -1,3 +1,16 @@
+"""
+    Final Project for the "Optimization for AI" course.
+    Developer : Bredariol Francesco
+
+    chomp.py
+
+    This file contain the handler for the virtual console to play the game "Chomp".
+
+    Function list:
+        - show_end_screen(turn)
+        - play_chomp(rows, cols, poison_position, players, graphics)
+"""
+
 from individual import *
 from chomp import *
 

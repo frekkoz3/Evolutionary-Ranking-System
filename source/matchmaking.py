@@ -15,3 +15,7 @@ def matches(individuals):
         This function should provides, given all the individuals, proper matches.
     """
     pass
+
+if __name__ == '__main__':
+    
+    pass

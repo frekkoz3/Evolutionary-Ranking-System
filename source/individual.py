@@ -69,3 +69,7 @@ class GeneticPolicyIndividual(Individual):
     def move(self, game : Chomp):
         state = self.policy.transform(game.get_state())
         return self.policy[state]
+    
+if __name__ == '__main__':
+    
+    pass

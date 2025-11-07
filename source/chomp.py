@@ -1,6 +1,13 @@
 """
     Final Project for the "Optimization for AI" course.
     Developer : Bredariol Francesco
+
+    chomp.py
+
+    This file contain the implementation of the game "Chomp".
+
+    Class list:
+        - Chomp
 """
 import random
 import copy
@@ -63,4 +70,5 @@ class Chomp:
         return self.board
     
 if __name__ == "__main__":
+
     pass

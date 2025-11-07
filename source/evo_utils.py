@@ -9,3 +9,7 @@
         - mutation(individual)
         - crossover(individual_1, individual_2)
 """
+
+if __name__ == '__main__':
+    
+    pass

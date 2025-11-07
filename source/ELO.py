@@ -61,5 +61,6 @@ def return_function(elo_x, elo_y, result, k : int = 20, lam : int = 400):
     return new_elo_x, new_elo_y
 
 if __name__ == '__main__':
+    
     pass
     
