@@ -38,7 +38,7 @@ def config():
         This config should be able to be consistent with the game played.
     """
 
-def round(players : list[ind.Individual], play_fun : function, graphics : bool, k : int, lam : int, **kwargs):
+def round(players : list[ind.Individual], matchmaking_fun : function,  play_fun : function, graphics : bool, k : int, lam : int, **kwargs):
     """
         This function provide an handler for playing all the rounds one selected the matches. 
         Please note that one could actually change the game just changing the play_fun.
@@ -46,7 +46,7 @@ def round(players : list[ind.Individual], play_fun : function, graphics : bool, 
         The k and lam are used from the elo updater.
     """
 
-    matches = mmk.matches(players)
+    matches = matchmaking_fun(players)
     for match in matches:
         p1, p2 = match
         x = p1.get_elo()
@@ -84,7 +84,7 @@ def play():
 
     for _ in range (number_of_matches):
 
-        round(players = players, play_fun = cns.play_chomp, graphics = False, k = k, lam = lam, **{ "rows" : rows, "cols" : cols, "poison_position" : poison_position})
+        round(players = players, matchmaking_fun= mmk.matches, play_fun = cns.play_chomp, graphics = False, k = k, lam = lam, **{ "rows" : rows, "cols" : cols, "poison_position" : poison_position})
         
     # --- RESULTS ---
     
