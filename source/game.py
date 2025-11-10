@@ -38,7 +38,7 @@ def config():
         This config should be able to be consistent with the game played.
     """
 
-def round(players : list[ind.Individual], matchmaking_fun : function,  play_fun : function, graphics : bool, k : int, lam : int, **kwargs):
+def round(players : list[ind.Individual], matchmaking_fun,  play_fun, graphics : bool, k : int, lam : int, **kwargs):
     """
         This function provide an handler for playing all the rounds one selected the matches. 
         Please note that one could actually change the game just changing the play_fun.
