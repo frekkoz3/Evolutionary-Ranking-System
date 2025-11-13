@@ -42,6 +42,9 @@ class Individual():
     def move(self):
         pass
 
+    def update(self, reward):
+        pass
+
 class RealIndividual(Individual):
 
     def move(self, game : Chomp):
@@ -59,6 +62,22 @@ class RandomIndividual(Individual):
     
     def move(self, game : Chomp):
         return random.choice(game.valid_moves())
+    
+class PaddleTrackingIndividual(Individual):
+
+    def move(self, full_state):
+        """
+            This state is in the form:
+            ([self.ball_x / self.WIDTH,
+            self.ball_y / self.HEIGHT,
+            self.vel_x / self.BALL_SPEED,
+            self.vel_y / self.BALL_SPEED,
+            self.paddle_a_y / self.HEIGHT,
+            self.paddle_b_y / self.HEIGHT], player a (bool))
+        """
+        state, player_a = full_state
+        return np.sign(state[1] - state[4]) if player_a else np.sign(state[1] - state[5])
+
     
 class GeneticPolicyIndividual(Individual):
 

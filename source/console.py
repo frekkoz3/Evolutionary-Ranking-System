@@ -14,6 +14,8 @@
 from individual import *
 from chomp import *
 
+from ping_pong import *
+
 def show_end_screen(turn):
     print("\n" + "="*50)
     print(f"💀  Player {turn} loses 💀".center(50))
@@ -49,6 +51,42 @@ def play_chomp(players = [RealIndividual(), RandomIndividual()], graphics = True
 
         turn = turn + 1
         turn = turn % 2
+
+def play_ping_pong(players = [RandomIndividual(), RandomIndividual()], graphics = True, **kwargs):
+    """
+        This play fun function follows the gym env protocol.
+        This is good for RL bot.
+    """
+
+    env = PongEnv()
+    env.reset(done = True)
+
+    state = env._get_state()
+
+    while True:
+
+        action_a = players[0].move((state, True)) # The boolean flag represent if the player is the first or the second
+        action_b = players[1].move((state, False))
+
+        state, (r_a, r_b), done, scored, _ = env.step(action_a, action_b)
+
+        # THIS COULD ALSO BEEN NON-IMPLEMENTED
+        players[0].update(r_a)
+        players[1].update(r_b)
+
+        if graphics:
+            env.render_ascii()
+            time.sleep(0.05)  # Adjust speed for smoother animation
+
+        if scored:
+            if graphics:
+                time.sleep(0.5)
+            env.reset(done)
+
+        if done:
+            time.sleep(0.5)
+            print("Game finished: ")
+            break
 
 if __name__ == '__main__':
 
