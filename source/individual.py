@@ -80,6 +80,11 @@ class PaddleTrackingIndividual(Individual):
 
     
 class GeneticPolicyIndividual(Individual):
+    """
+        This class should be the implementation of the individual we actually want to implement for the Evolutionary Ranking System project.
+        It should presents all what it needs to learn, mutate etc.
+        It should use the utilities from the evo_utils.py and it should use the policy as an attribute.
+    """
 
     def __init__(self, initial_policy, init_elo = 100):
         super().__init__(init_elo)
