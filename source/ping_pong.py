@@ -120,7 +120,7 @@ class PongEnv:
             done = True
 
         # Adding some random noise 
-        return self._get_state() + np.random.normal(0, 0.1, size=6), (reward_a, reward_b), done, scored, {}
+        return self._get_state(), (reward_a, reward_b), done, scored, {}
 
     def render_ascii(self, grid_w=60, grid_h=20, clear_screen=True):
             """Render ASCII field with borders, paddles, and ball"""
