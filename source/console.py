@@ -58,15 +58,21 @@ def play_ping_pong(players = [RandomIndividual(), RandomIndividual()], graphics 
         This is good for RL bot.
     """
 
-    env = PongEnv()
+    env = PongEnv(**kwargs)
     env.reset(done = True)
 
     state = env._get_state()
 
     while True:
 
-        action_a = players[0].move((state, True)) # The boolean flag represent if the player is the first or the second
-        action_b = players[1].move((state, False))
+        if isinstance(players[0], RandomIndividual):
+            action_a = players[0].move(env)
+        else:
+            action_a = players[0].move((state, True)) # The boolean flag represent if the player is the first or the second
+        if isinstance(players[1], RandomIndividual):
+            action_b = players[1].move(env)
+        else:
+            action_b = players[1].move((state, False))
 
         state, (r_a, r_b), done, scored, _ = env.step(action_a, action_b)
 
@@ -76,27 +82,33 @@ def play_ping_pong(players = [RandomIndividual(), RandomIndividual()], graphics 
 
         if graphics:
             env.render_ascii()
-            time.sleep(0.05)  # Adjust speed for smoother animation
+            time.sleep(0.01)
+        
+        if done:
+            if env.score_a > env.score_b:
+                return (1, 0)
+            return (0, 1)
 
         if scored:
-            if graphics:
-                time.sleep(0.5)
             env.reset(done)
-
-        if done:
-            time.sleep(0.5)
-            print("Game finished: ")
-            break
 
 if __name__ == '__main__':
 
-    pass
+    """
+    CHOMP
+    rows = 10 # number of rows on the chomp board
+    cols = 10 # number of columns on the chomp board
+    poison_position = [-1, -1] # position of the poisoned block on the chomp board. [-1, -1] = random
+    
+    kwargs = { "rows" : rows, "cols" : cols, "poison_position" : poison_position}
 
-    """rows = 10
-    cols = 10
-    poison_position = [-1, -1]
-    players = [RandomIndividual(), RandomIndividual()]
-    graphics = False
+    play_chomp(graphics=True, players = [RandomIndividual(), RandomIndividual()], **kwargs)
+    """
 
-    result = play_chomp(rows=rows, cols=cols, poison_position=poison_position, players=players, graphics=graphics)
-    print(result)"""
+    """
+    PINGPONG
+    kwargs = { "width" : 800, "height" : 800, "paddle_height" : 100, "paddle_speed" : 6, "ball_speed" : 10, "speedup_factor": 1.05, "randomness" : 0.15}
+    """
+
+    play_ping_pong(players=[PaddleTrackingIndividual(), PaddleTrackingIndividual()], **{ "width" : 800, "height" : 800, "paddle_height" : 100, "paddle_speed" : 6, "ball_speed" : 10, "speedup_factor": 1.05, "randomness" : 0.15})
+    

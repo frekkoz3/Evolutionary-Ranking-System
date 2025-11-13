@@ -37,7 +37,7 @@ class Individual():
     def update_elo(self, opponent, new_elo):
         self.opponent_history.append(opponent.get_id())
         self.elo_history.append(self.elo)
-        self.elo = new_elo
+        self.elo = max(new_elo, 0)
 
     def move(self):
         pass

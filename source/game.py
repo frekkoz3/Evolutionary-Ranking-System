@@ -12,6 +12,7 @@ import individual as ind
 import matchmaking as mmk
 import numpy as np
 from matplotlib import pyplot as plt
+from tqdm import tqdm
 
 def show_results(players : list[ind.Individual], log_log = False):
     """
@@ -56,7 +57,7 @@ def round(players : list[ind.Individual], matchmaking_fun,  play_fun, graphics :
         p1.update_elo(p2, x)
         p2.update_elo(p1, y)
 
-def play():
+def play(player_class = ind.RandomIndividual, matchmaking_fun = mmk.matches, play_fun = cns.play_chomp, **kwargs):
     """
         This function should provides the complete wrapper for everything.
         It should be configurable from a json or something like this.
@@ -67,29 +68,29 @@ def play():
     # lam, k, n, players, number_of_matches, kwargs = config() 
     
     lam = 400 # lambda for the probability of winning
-    k = 40 # 
+    k = 40 # k for the constant in the elo update
 
-    rows = 10 # number of rows on the chomp board
-    cols = 10 # number of columns on the chomp board
-    poison_position = [-1, -1] # position of the poisoned block on the chomp board. [-1, -1] = random
+    n = 100 # number of individuals. please keep it a multiple of 2 for now
 
-    n = 10 # number of individuals. please keep it a multiple of 2 for now
+    players = [player_class() for _ in range (n)]
 
-    players = [ind.RandomIndividual() for _ in range (n)]
-
-    number_of_matches = 1000
+    number_of_rounds = 100
 
     # --- ACTUAL GAMES ---
     # please note that the actual game played could be anything. It should be sufficient to change the play_fun 
 
-    for _ in range (number_of_matches):
-
-        round(players = players, matchmaking_fun= mmk.matches, play_fun = cns.play_chomp, graphics = False, k = k, lam = lam, **{ "rows" : rows, "cols" : cols, "poison_position" : poison_position})
+    for r in tqdm(range (number_of_rounds), desc="Tournament on going", unit="round"):
+        round(players = players, matchmaking_fun= matchmaking_fun, play_fun = play_fun, graphics = False, k = k, lam = lam, **kwargs)
         
     # --- RESULTS ---
     
     show_results(players)
 
 if __name__ == '__main__':
+
+    # rows = 10 # number of rows on the chomp board
+    # cols = 10 # number of columns on the chomp board
+    # poison_position = [-1, -1] # position of the poisoned block on the chomp board. [-1, -1] = random
     
+    # kwargs = { "rows" : rows, "cols" : cols, "poison_position" : poison_position}
     pass

@@ -3,26 +3,25 @@ import sys
 import time
 
 class PongEnv:
-    def __init__(self, width=800, height=600, paddle_height=100, paddle_speed=6,
-                 ball_speed=5, speedup_factor=1.05, randomness=0.15):
+    def __init__(self, **kwargs):
         # Environment configuration
-        self.WIDTH = width
-        self.HEIGHT = height
-        self.PADDLE_HEIGHT = paddle_height
-        self.PADDLE_SPEED = paddle_speed
-        self.BALL_SPEED = ball_speed
-        self.SPEEDUP_FACTOR = speedup_factor  # how much faster the ball gets each hit
-        self.RANDOMNESS = randomness          # how much noise in ball motion
+        self.WIDTH = kwargs["width"]
+        self.HEIGHT = kwargs["height"]
+        self.PADDLE_HEIGHT = kwargs["paddle_height"]
+        self.PADDLE_SPEED = kwargs["paddle_speed"]
+        self.BALL_SPEED = kwargs["ball_speed"]
+        self.SPEEDUP_FACTOR = kwargs["speedup_factor"]  # how much faster the ball gets each hit
+        self.RANDOMNESS = kwargs["randomness"]          # how much noise in ball motion
         self.timestep = 0
         self.reset()
 
     def reset(self, done = False):
         """Reset environment to initial state"""
-        self.ball_x = self.WIDTH / 2
-        self.ball_y = self.HEIGHT / 2
+        self.ball_x = self.WIDTH / 2 + np.random.uniform(-self.WIDTH//8, self.WIDTH//8)
+        self.ball_y = self.HEIGHT / 2 + np.random.uniform(-self.HEIGHT//8, self.HEIGHT//8)
 
         # Random initial direction
-        angle = np.random.uniform(-0.3, 0.3)
+        angle = np.random.uniform(-0.45, 0.45)
         direction = np.random.choice([-1, 1])
         self.vel_x = direction * self.BALL_SPEED * np.cos(angle)
         self.vel_y = self.BALL_SPEED * np.sin(angle)
@@ -167,29 +166,9 @@ class PongEnv:
             print("\n".join(lines))
             print(f"Score: A={self.score_a} | B={self.score_b}")
 
-def play()
+    def valid_moves(self):
+        return np.array([-1, 0, 1])
 
-# === Example usage ===
 if __name__ == "__main__":
-    env = PongEnv()
-    env.reset(done = True)
 
-    while True:
-        # Simple AI: paddles track ball position
-        action_a = np.sign(env.ball_y - env.paddle_a_y)
-        action_b = np.sign(env.ball_y - env.paddle_b_y)
-
-        state, (r_a, r_b), done, scored, _ = env.step(action_a, action_b)
-
-        #env.render_ascii()
-
-        #time.sleep(0.05)  # Adjust speed for smoother animation
-
-        if scored:
-            #time.sleep(0.5)
-            env.reset(done)
-
-        if done:
-            time.sleep(0.5)
-            print("Game finished: ")
-            break
+    pass
