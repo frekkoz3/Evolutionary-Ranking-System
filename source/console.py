@@ -12,9 +12,9 @@
 """
 
 from individual import *
-from chomp import *
+from games.chomp.chomp import *
 
-from ping_pong import *
+from games.ping_pong.ping_pong import *
 
 def show_end_screen(turn):
     print("\n" + "="*50)
