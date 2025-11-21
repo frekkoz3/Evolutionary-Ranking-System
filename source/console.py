@@ -16,12 +16,17 @@ from games.chomp.chomp import *
 
 from games.ping_pong.ping_pong import *
 
+from games.boxing.boxing import *
+
 def show_end_screen(turn):
     print("\n" + "="*50)
     print(f"💀  Player {turn} loses 💀".center(50))
     print("="*50)
 
 def play_chomp(players = [RealIndividual(), RandomIndividual()], graphics = True, **kwargs):
+    """
+        This thing should be all rewrited better
+    """
 
     rows = kwargs["rows"]
     cols = kwargs["cols"]
@@ -54,14 +59,14 @@ def play_chomp(players = [RealIndividual(), RandomIndividual()], graphics = True
 
 def play_ping_pong(players = [RandomIndividual(), RandomIndividual()], graphics = True, **kwargs):
     """
-        This play fun function follows the gym env protocol.
+        This play fun function follows the gym env protocol. NOT ENTIRELY TRUE. TO REWRITE IT BETTER
         This is good for RL bot.
     """
 
     env = PongEnv(**kwargs)
-    env.reset(done = True)
+    state, _ = env.reset(done = True)
 
-    state = env._get_state()
+    done = False
 
     while True:
 
@@ -89,8 +94,48 @@ def play_ping_pong(players = [RandomIndividual(), RandomIndividual()], graphics 
                 return (1, 0)
             return (0, 1)
 
-        if scored:
+        if scored: # needed for the ping pong game but should be adapted to the gymansium protocol 
             env.reset(done)
+
+def play_boxing(players = [RandomIndividual(), RandomIndividual()], graphics = True, **kwargs):
+    """
+        This play fun function follows the gym env protocol.
+        This is good for RL bot.
+    """
+
+    env = BoxingEnv(graphics)
+
+    obs, info = env.reset()
+
+    done = False
+
+    while not done:    
+        if isinstance(players[0], RandomIndividual):
+            action_a = players[0].move(env)
+        else:
+            action_a = players[0].move((obs, True)) # The boolean flag represent if the player is the first or the second
+        if isinstance(players[1], RandomIndividual):
+            action_b = players[1].move(env)
+        else:
+            action_b = players[1].move((obs, False))
+        
+        obs, (r_a, r_b), done, truncated, info = env.step(env.action_space.sample())
+
+        try:
+            env.render()
+        except UserClosingWindowException as e:
+            done, truncated = True, True
+
+        # THIS COULD ALSO BEEN NON-IMPLEMENTED
+        players[0].update(r_a)
+        players[1].update(r_b)
+
+        if done:
+            if env.p1_score > env.p2_score:
+                return (1, 0)
+            return (0, 1)
+
+    env.close()
 
 if __name__ == '__main__':
 
@@ -110,5 +155,5 @@ if __name__ == '__main__':
     kwargs = { "width" : 800, "height" : 800, "paddle_height" : 100, "paddle_speed" : 6, "ball_speed" : 10, "speedup_factor": 1.05, "randomness" : 0.15}
     """
 
-    play_ping_pong(players=[PaddleTrackingIndividual(), PaddleTrackingIndividual()], **{ "width" : 800, "height" : 800, "paddle_height" : 100, "paddle_speed" : 6, "ball_speed" : 10, "speedup_factor": 1.05, "randomness" : 0.15})
-    
+    #play_ping_pong(players=[PaddleTrackingIndividual(), PaddleTrackingIndividual()], **{ "width" : 800, "height" : 800, "paddle_height" : 100, "paddle_speed" : 6, "ball_speed" : 10, "speedup_factor": 1.05, "randomness" : 0.15})
+    play_boxing()

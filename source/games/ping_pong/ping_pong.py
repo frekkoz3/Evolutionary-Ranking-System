@@ -6,15 +6,19 @@
 
     This file contain the implementation of the game "ping pong".
 
+    !!!This thing should be rewrited following the gymnasium protocol!!!
+
     Class list:
         - pong
 """
 import numpy as np
 import sys
 import time
+from gymnasium import spaces
 
 class PongEnv:
     def __init__(self, **kwargs):
+        
         # Environment configuration
         self.WIDTH = kwargs["width"]
         self.HEIGHT = kwargs["height"]
@@ -57,7 +61,7 @@ class PongEnv:
             self.vel_y / self.BALL_SPEED,
             self.paddle_a_y / self.HEIGHT,
             self.paddle_b_y / self.HEIGHT
-        ], dtype=np.float32)
+        ], dtype=np.float32), {} # for the gymnasium protocol
 
     def step(self, action_a, action_b):
         """Perform one simulation step.
@@ -131,7 +135,7 @@ class PongEnv:
             done = True
 
         # Adding some random noise 
-        return self._get_state(), (reward_a, reward_b), done, scored, {}
+        return self._get_state(), (reward_a, reward_b), done, scored, {} #it should be in the format "obs, rewards, done, truncated, info"
 
     def render_ascii(self, grid_w=60, grid_h=20, clear_screen=True):
             """Render ASCII field with borders, paddles, and ball"""

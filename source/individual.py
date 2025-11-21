@@ -58,9 +58,13 @@ class RealIndividual(Individual):
                 move = None
         return move
 
+from gymnasium import Env
+
 class RandomIndividual(Individual):
     
     def move(self, game : Chomp):
+        if isinstance(game, Env):
+            return game.action_space.sample()
         return random.choice(game.valid_moves())
     
 class PaddleTrackingIndividual(Individual):
