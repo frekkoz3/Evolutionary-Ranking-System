@@ -17,7 +17,13 @@ class BoxingEnv(gym.Env):
         super().__init__()
 
         # Screen size
-        self.W, self.H = 800, 600
+        self.W, self.H = 800, 700
+        # Ring size
+        self.HUD_HEIGHT = 80   # space on top for score
+        self.RING_LEFT = 50
+        self.RING_TOP = self.HUD_HEIGHT
+        self.RING_WIDTH = self.W - 100
+        self.RING_HEIGHT = self.H - self.HUD_HEIGHT - 50
 
         # Observation:
         # [p1_x, p1_y, p1_stamina, p1_state,
@@ -70,6 +76,7 @@ class BoxingEnv(gym.Env):
         return {
             "x": x,
             "y": y,
+            "score" : 0,
             "size": 40,
             "speed": 5,
             "stamina": 100,
@@ -130,8 +137,15 @@ class BoxingEnv(gym.Env):
     def reset(self, seed=None, options=None):
         super().reset(seed=seed)
 
-        self.p1 = self.make_boxer(200, 300)
-        self.p2 = self.make_boxer(600, 300)
+        self.p1 = self.make_boxer(
+            self.RING_LEFT + 100,
+            self.RING_TOP + self.RING_HEIGHT // 2,
+        )
+
+        self.p2 = self.make_boxer(
+            self.RING_LEFT + self.RING_WIDTH - 100,
+            self.RING_TOP + self.RING_HEIGHT // 2,
+        )
         self.t = 0
 
         return self._get_obs(), {}
@@ -182,11 +196,13 @@ class BoxingEnv(gym.Env):
         reward_p1, reward_p2 = 0, 0
 
         if self.p1["state"] == 2 and self._collide(self.p1, self.p2):
+            self.p1["score"] += 1
             self.p2["stamina"] -= 10
             reward_p1 += 1
             reward_p2 -= 1
 
         if self.p2["state"] == 2 and self._collide(self.p2, self.p1):
+            self.p2["score"] += 1
             self.p1["stamina"] -= 10
             reward_p2 += 1
             reward_p1 -= 1
@@ -225,8 +241,17 @@ class BoxingEnv(gym.Env):
             boxer["x"] += boxer["speed"]
 
         # boundary clamp
-        boxer["x"] = np.clip(boxer["x"], 0, self.W - boxer["size"])
-        boxer["y"] = np.clip(boxer["y"], 0, self.H - boxer["size"])
+        boxer["x"] = np.clip(
+            boxer["x"],
+            self.RING_LEFT,
+            self.RING_LEFT + self.RING_WIDTH - boxer["size"]
+        )
+
+        boxer["y"] = np.clip(
+            boxer["y"],
+            self.RING_TOP,
+            self.RING_TOP + self.RING_HEIGHT - boxer["size"]
+        )
 
         # punch
         if action in [5, 6, 7]:
@@ -263,7 +288,18 @@ class BoxingEnv(gym.Env):
             if event.type == pygame.QUIT:
                 pygame.quit()
 
-        self.screen.fill((240, 240, 240))
+        # fill background
+        self.screen.fill((220,220,220))
+
+        def draw_ring():
+            # draw ring border
+            pygame.draw.rect(
+                self.screen,
+                (200, 200, 255),  # light bluish canvas
+                (self.RING_LEFT, self.RING_TOP, self.RING_WIDTH, self.RING_HEIGHT)
+            )
+
+        draw_ring()
 
         def draw_boxer(b, color):
             # Draw body
@@ -292,16 +328,32 @@ class BoxingEnv(gym.Env):
                     offset_x, offset_y = (50 if b == self.p1 else -50, 0)
 
             pygame.draw.circle(
-                self.screen, (255, 0, 0),
+                self.screen, color,
                 (int(lcx + offset_x), int(lcy + offset_y)), r
             )
             pygame.draw.circle(
-                self.screen, (255, 0, 0),
+                self.screen, color,
                 (int(rcx + offset_x), int(rcy + offset_y)), r
             )
 
         draw_boxer(self.p1, (0, 128, 255))
         draw_boxer(self.p2, (255, 100, 0))
+
+        def draw_score():
+            # example score display
+            score_font = pygame.font.Font("fonts/PressStart2P.ttf", 28)
+            divider_font = pygame.font.Font("fonts/PressStart2P.ttf", 22)
+
+            score_p1 = score_font.render(str(self.p1['score']), True, (255,255,255))
+            score_p2 = score_font.render(str(self.p2['score']), True, (255,255,255))
+
+            divider = divider_font.render("|", True, (255,255,255))
+
+            self.screen.blit(score_p1, (self.W//2 + 100, 20))
+            self.screen.blit(divider, (self.W//2, 20))
+            self.screen.blit(score_p2, (self.W//2 - 100, 20))
+
+        draw_score()
 
         pygame.display.flip()
         self.clock.tick(60)
