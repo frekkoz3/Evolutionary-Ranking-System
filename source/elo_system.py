@@ -2,9 +2,9 @@
     Final Project for the "Optimization for AI" course.
     Developer : Bredariol Francesco
 
-    game.py:
+    elo_system.py:
     
-    This file contains the handler for the entire game.
+    This file contains the handler for the entire game using the elo_system.
 """
 import ELO as elo 
 import console as cns
@@ -76,7 +76,7 @@ def play(player_class = ind.RandomIndividual, matchmaking_fun = mmk.matches, pla
 
     number_of_rounds = 100
 
-    # --- ACTUAL GAMES ---
+    # --- ACTUAL GAME ---
     # please note that the actual game played could be anything. It should be sufficient to change the play_fun 
 
     for r in tqdm(range (number_of_rounds), desc="Tournament on going", unit="round"):

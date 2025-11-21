@@ -1,3 +1,15 @@
+
+"""
+    Final Project for the "Optimization for AI" course.
+    Developer : Bredariol Francesco
+
+    boxing.py
+
+    This file contain the implementation of the game "boxing".
+
+    Class list:
+        - BoxingEnv
+"""
 import gymnasium as gym
 import numpy as np
 import pygame

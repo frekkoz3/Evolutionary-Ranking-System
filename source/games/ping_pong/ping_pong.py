@@ -1,3 +1,14 @@
+"""
+    Final Project for the "Optimization for AI" course.
+    Developer : Bredariol Francesco
+
+    chomp.py
+
+    This file contain the implementation of the game "ping pong".
+
+    Class list:
+        - pong
+"""
 import numpy as np
 import sys
 import time

@@ -6,7 +6,7 @@
     
     This file is used just as final wrapper.
 """
-from game import play
+from elo_system import play
 from individual import PaddleTrackingIndividual
 from console import play_ping_pong
 
