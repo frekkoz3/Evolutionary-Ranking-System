@@ -1,7 +1,7 @@
-import gym
+import gymnasium as gym
 import numpy as np
 import pygame
-from gym import spaces
+from gymnasium import spaces
 
 
 class BoxingEnv(gym.Env):
@@ -68,7 +68,6 @@ class BoxingEnv(gym.Env):
 
         self.reset()
 
-
     # ---------------------------------------------------------
     # Boxer definition
     # ---------------------------------------------------------
@@ -87,14 +86,14 @@ class BoxingEnv(gym.Env):
         }
 
     # punch parameters
-    PUNCHES = {
+    PUNCHES = { # startup time, active time, recovery time, stamina cost
         0: (5, 4, 8, 5),    # jab
         1: (10, 4, 14, 12), # hook
         2: (14, 4, 18, 16)  # uppercut
     }
 
     def start_punch(self, boxer, punch_type):
-        if boxer["state"] != 0:
+        if boxer["state"] != 0: # punch can only start in startup state
             return
 
         startup, active, recovery, cost = self.PUNCHES[punch_type]
@@ -106,7 +105,6 @@ class BoxingEnv(gym.Env):
         boxer["state"] = 1   # startup
         boxer["timer"] = startup
         boxer["punch"] = punch_type
-
 
     def update_punch_state(self, boxer):
         if boxer["state"] == 0:
@@ -129,7 +127,6 @@ class BoxingEnv(gym.Env):
         elif boxer["state"] == 3 and boxer["timer"] <= 0:
             boxer["state"] = 0
             boxer["punch"] = None
-
 
     # ---------------------------------------------------------
     # Gym required methods
@@ -196,12 +193,20 @@ class BoxingEnv(gym.Env):
         reward_p1, reward_p2 = 0, 0
 
         if self.p1["state"] == 2 and self._collide(self.p1, self.p2):
+            if self.p2["state"] == 1:
+                self.p2["state"] = 0 # punch cancel (TO CHECK IF IT WORKS)
+                self.p2["punch"] = None
+                reward_p1 += 0.5
             self.p1["score"] += 1
             self.p2["stamina"] -= 10
             reward_p1 += 1
             reward_p2 -= 1
 
         if self.p2["state"] == 2 and self._collide(self.p2, self.p1):
+            if self.p1["state"] == 1:
+                self.p1["state"] = 0 # punch cancel
+                self.p1["punch"] = None
+                reward_p2 += 0.5
             self.p2["score"] += 1
             self.p1["stamina"] -= 10
             reward_p2 += 1
@@ -210,13 +215,13 @@ class BoxingEnv(gym.Env):
         # -----------------------------------------------------
         # Terminal conditions
         # -----------------------------------------------------
-        done = False
-        if self.p1["stamina"] <= 0:
+        done = False # to add truncated 
+        if self.p2["score"] > 100:
             reward_p2 += 10
             reward_p1 -= 10
             done = True
 
-        if self.p2["stamina"] <= 0:
+        if self.p1["score"] > 100:
             reward_p1 += 10
             reward_p2 -= 10
             done = True
@@ -230,7 +235,14 @@ class BoxingEnv(gym.Env):
     # Action helper
     # ---------------------------------------------------------
     def _apply_action(self, boxer, action):
+        if boxer["stamina"] <= 0:
+            boxer["state"] = 0
+            boxer["punch"] = None
+            action = 0
+            boxer["stamina"] += 1
         # movement
+        if action in [1, 2, 3, 4]:
+            boxer["stamina"] -= 0.5 # little stamina cost for the movement
         if action == 1:  # up
             boxer["y"] -= boxer["speed"]
         elif action == 2:  # down
@@ -255,12 +267,13 @@ class BoxingEnv(gym.Env):
 
         # punch
         if action in [5, 6, 7]:
-            self.start_punch(boxer, action - 5)
+            self.start_punch(boxer, action - 5) # punch offset
 
     # ---------------------------------------------------------
     # Collision check
     # ---------------------------------------------------------
-    def _collide(self, a, b):
+    def _collide(self, a, b): # this must be upgraded such that it is checked if a punch land on the opponent 
+        # using the player["hand"] position and updating the hand position based on the type of punch
         return (
             a["x"] < b["x"] + b["size"] and
             a["x"] + a["size"] > b["x"] and
@@ -271,7 +284,7 @@ class BoxingEnv(gym.Env):
     # ---------------------------------------------------------
     # Observation vector
     # ---------------------------------------------------------
-    def _get_obs(self):
+    def _get_obs(self): # for now it is just like this
         return np.array([
             self.p1["x"], self.p1["y"], self.p1["stamina"], self.p1["state"],
             self.p2["x"], self.p2["y"], self.p2["stamina"], self.p2["state"],
@@ -402,7 +415,6 @@ class BoxingEnv(gym.Env):
 
         pygame.display.flip()
         self.clock.tick(60)
-
 
     def close(self):
         if self.render_mode == "human":
