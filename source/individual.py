@@ -15,7 +15,7 @@
         - GeneticPolicyIndividual
 """
 import random
-from chomp import Chomp
+from games.chomp.chomp import Chomp
 from itertools import count
 from policy import *
 
