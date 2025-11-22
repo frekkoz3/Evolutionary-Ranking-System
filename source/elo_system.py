@@ -39,6 +39,44 @@ def config():
         This config should be able to be consistent with the game played.
     """
 
+def run_match(p1, p2, play_fun, graphics, k, lam, kwargs):
+
+    x = p1.get_elo()
+    y = p2.get_elo()
+    
+    result = play_fun(players=[p1, p2], graphics=graphics, **kwargs)
+    
+    x_new, y_new = elo.return_function(x, y, result, k=k, lam=lam)
+
+    return (p1.get_id(), p2.get_id(), x_new, y_new)
+
+from joblib import Parallel, delayed
+
+def parallel_round(players, matchmaking_fun, play_fun, graphics, k, lam, n_jobs=-1, **kwargs):
+    """
+        This function provide an handler for playing all the rounds one selected the matches. 
+        Please note that one could actually change the game just changing the play_fun.
+        It is just imposed that the play function uses the graphics option (true / false).
+        The k and lam are used from the elo updater.
+    """
+
+    matches = matchmaking_fun(players)
+
+    players_map = {player.id : player for player in players}
+
+    results = Parallel(n_jobs=n_jobs)(
+        delayed(run_match)(p1, p2, play_fun, graphics, k, lam, kwargs)
+        for (p1, p2) in matches
+    ) # this works on copy of the actual players so now we have to copy them back
+
+    # Apply the updates to the real objects
+    for p1_id, p2_id, x_new, y_new in results:
+        real_p1 = players_map[p1_id]
+        real_p2 = players_map[p2_id]
+
+        real_p1.update_elo(p2_id, x_new)
+        real_p2.update_elo(p1_id, y_new)
+
 def round(players : list[ind.Individual], matchmaking_fun,  play_fun, graphics : bool, k : int, lam : int, **kwargs):
     """
         This function provide an handler for playing all the rounds one selected the matches. 
@@ -48,6 +86,7 @@ def round(players : list[ind.Individual], matchmaking_fun,  play_fun, graphics :
     """
 
     matches = matchmaking_fun(players)
+
     for match in matches:
         p1, p2 = match
         x = p1.get_elo()
@@ -57,7 +96,7 @@ def round(players : list[ind.Individual], matchmaking_fun,  play_fun, graphics :
         p1.update_elo(p2.get_id(), x)
         p2.update_elo(p1.get_id(), y)
 
-def play(player_class = ind.RandomIndividual, matchmaking_fun = mmk.matches, play_fun = cns.play_boxing, **kwargs):
+def play(player_class = ind.RandomIndividual, matchmaking_fun = mmk.matches, play_fun = cns.play_boxing, parallel = True, **kwargs):
     """
         This function should provides the complete wrapper for everything.
         It should be configurable from a json or something like this.
@@ -80,7 +119,10 @@ def play(player_class = ind.RandomIndividual, matchmaking_fun = mmk.matches, pla
     # please note that the actual game played could be anything. It should be sufficient to change the play_fun 
 
     for r in tqdm(range (number_of_rounds), desc="Tournament on going", unit="round"):
-        round(players = players, matchmaking_fun= matchmaking_fun, play_fun = play_fun, graphics = False, k = k, lam = lam, **kwargs)
+        if parallel:
+            parallel_round(players = players, matchmaking_fun= matchmaking_fun, play_fun = play_fun, graphics = False, k = k, lam = lam, n_jobs=-1, **kwargs) #fixed to used the maximum number of jobs
+        else:
+            round(players = players, matchmaking_fun= matchmaking_fun, play_fun = play_fun, graphics = False, k = k, lam = lam, **kwargs)
         
     # --- RESULTS ---
     
