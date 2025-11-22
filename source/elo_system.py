@@ -54,10 +54,10 @@ def round(players : list[ind.Individual], matchmaking_fun,  play_fun, graphics :
         y = p2.get_elo()
         result = play_fun(players = [p1, p2], graphics = graphics, **kwargs)
         x, y = elo.return_function(x, y, result, k=k, lam=lam)
-        p1.update_elo(p2, x)
-        p2.update_elo(p1, y)
+        p1.update_elo(p2.get_id(), x)
+        p2.update_elo(p1.get_id(), y)
 
-def play(player_class = ind.RandomIndividual, matchmaking_fun = mmk.matches, play_fun = cns.play_chomp, **kwargs):
+def play(player_class = ind.RandomIndividual, matchmaking_fun = mmk.matches, play_fun = cns.play_boxing, **kwargs):
     """
         This function should provides the complete wrapper for everything.
         It should be configurable from a json or something like this.
@@ -70,11 +70,11 @@ def play(player_class = ind.RandomIndividual, matchmaking_fun = mmk.matches, pla
     lam = 400 # lambda for the probability of winning
     k = 40 # k for the constant in the elo update
 
-    n = 100 # number of individuals. please keep it a multiple of 2 for now
+    n = 20 # number of individuals. please keep it a multiple of 2 for now
 
     players = [player_class() for _ in range (n)]
 
-    number_of_rounds = 100
+    number_of_rounds = 1000
 
     # --- ACTUAL GAME ---
     # please note that the actual game played could be anything. It should be sufficient to change the play_fun 

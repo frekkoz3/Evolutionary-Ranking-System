@@ -18,7 +18,10 @@ from .boxers import Boxer
 class UserClosingWindowException(Exception):
     pass
 
-FPS = 30
+FPS = 30 
+FRAME_DELAY = 5 # frame to wait between each decision
+MAXIMUM_TIME = 120 # time in second
+# the total maximum time in terms of time step is maximum_time * fps // frame_delay 
 
 # ===========================================================
 # Boxing Environment
@@ -34,10 +37,7 @@ class BoxingEnv(gym.Env):
         # 0 = idle, 1 up, 2 down, 3 left, 4 right,
         # 5 = jab, 6 = hook, 7 = uppercut
         # ------------------------------------------------------
-        self.action_space = spaces.Tuple((
-            spaces.Discrete(8),
-            spaces.Discrete(8)
-        ))
+        self.action_space = spaces.Discrete(8)
 
         # Observation could later be replaced by game state arrays
         self.observation_space = spaces.Box(
@@ -70,6 +70,9 @@ class BoxingEnv(gym.Env):
         self.p1_score = 0
         self.p2_score = 0
 
+        # Timer
+        self.time = 0
+
         # Initialize boxers
         self.reset()
 
@@ -84,6 +87,8 @@ class BoxingEnv(gym.Env):
 
         self.p1_score = 0
         self.p2_score = 0
+
+        self.time = 0
 
         obs = np.zeros((self.H, self.W, 3), dtype=np.uint8)
         return obs, {}
@@ -157,8 +162,15 @@ class BoxingEnv(gym.Env):
         if self.p1.score >= 100 or self.p2.score >= 100:
             terminated = True
 
-        obs = np.zeros((self.H, self.W, 3), dtype=np.uint8)
+        obs = np.zeros((self.H, self.W, 3), dtype=np.uint8) # this must be modified!!
         reward = (reward_p1, reward_p2)
+
+        # --------------------------------
+        # Time update
+        # --------------------------------
+        self.time += 1
+        if self.time >= MAXIMUM_TIME * FPS // FRAME_DELAY:
+            return obs, reward, True, True, {} 
 
         """if self.render_mode == "human":
             self.render()"""
@@ -176,6 +188,9 @@ class BoxingEnv(gym.Env):
     # Render
     # =======================================================
     def render(self):
+        if self.render_mode != "human":
+            return 
+        
         if self.window is None:
             pygame.init()
             self.window = pygame.display.set_mode((self.W, self.H))
@@ -229,9 +244,6 @@ class BoxingEnv(gym.Env):
         self.window.blit(divider, (self.W//2 - 15, 10))
         self.window.blit(p2_score, (self.W//2 + 35, 10))
 
-        print(self.p1)
-        print(self.p2)
-
         pygame.display.flip()
         self.clock.tick(FPS)
 
@@ -251,12 +263,14 @@ if __name__ == '__main__':
     t = 0
 
     while not done:    
-        actions = None if t%5!= 0 else env.action_space.sample()
+        actions = (env.action_space.sample(), env.action_space.sample())
         obs, rewards, done, truncated, info = env.step(env.action_space.sample())
         try:
             env.render()
         except UserClosingWindowException as e:
             done, truncated = True, True
         t+=1
+        if t > 180:
+            done, truncated = True, True
 
     env.close()

@@ -14,10 +14,10 @@
         - RandomIndividual
         - GeneticPolicyIndividual
 """
-import random
-from games.chomp.chomp import Chomp
+
 from itertools import count
 from policy import *
+from gymnasium import Env
 
 class Individual():
     _ids = count(0)
@@ -34,8 +34,8 @@ class Individual():
     def get_id(self):
         return self.id
     
-    def update_elo(self, opponent, new_elo):
-        self.opponent_history.append(opponent.get_id())
+    def update_elo(self, opponent_id, new_elo):
+        self.opponent_history.append(opponent_id)
         self.elo_history.append(self.elo)
         self.elo = max(new_elo, 0)
 
@@ -45,44 +45,11 @@ class Individual():
     def update(self, reward):
         pass
 
-class RealIndividual(Individual):
-
-    def move(self, game : Chomp):
-        move = None
-        while move not in game.valid_moves():
-            try:
-                r = int(input("Row (0-indexed): "))
-                c = int(input("Col (0-indexed): "))
-                move = (r, c)
-            except:
-                move = None
-        return move
-
-from gymnasium import Env
-
 class RandomIndividual(Individual):
     
-    def move(self, game : Chomp):
-        if isinstance(game, Env):
-            return game.action_space.sample()
-        return random.choice(game.valid_moves())
-    
-class PaddleTrackingIndividual(Individual):
+    def move(self, game : Env):
+        return game.action_space.sample()
 
-    def move(self, full_state):
-        """
-            This state is in the form:
-            ([self.ball_x / self.WIDTH,
-            self.ball_y / self.HEIGHT,
-            self.vel_x / self.BALL_SPEED,
-            self.vel_y / self.BALL_SPEED,
-            self.paddle_a_y / self.HEIGHT,
-            self.paddle_b_y / self.HEIGHT], player a (bool))
-        """
-        state, player_a = full_state
-        return np.sign(state[1] - state[4]) if player_a else np.sign(state[1] - state[5])
-
-    
 class GeneticPolicyIndividual(Individual):
     """
         This class should be the implementation of the individual we actually want to implement for the Evolutionary Ranking System project.
@@ -94,7 +61,7 @@ class GeneticPolicyIndividual(Individual):
         super().__init__(init_elo)
         self.policy = initial_policy
 
-    def move(self, game : Chomp):
+    def move(self, game):
         state = self.policy.transform(game.get_state())
         return self.policy[state]
     

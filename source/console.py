@@ -2,100 +2,17 @@
     Final Project for the "Optimization for AI" course.
     Developer : Bredariol Francesco
 
-    chomp.py
+    console.py
 
-    This file contain the handler for the virtual console to play the game "Chomp".
+    This file contain the handler for the virtual console to play various games.
 
     Function list:
-        - show_end_screen(turn)
-        - play_chomp(rows, cols, poison_position, players, graphics)
+        - play_boxing()
 """
 
 from individual import *
-from games.chomp.chomp import *
-
-from games.ping_pong.ping_pong import *
 
 from games.boxing.boxing import *
-
-def show_end_screen(turn):
-    print("\n" + "="*50)
-    print(f"💀  Player {turn} loses 💀".center(50))
-    print("="*50)
-
-def play_chomp(players = [RealIndividual(), RandomIndividual()], graphics = True, **kwargs):
-    """
-        This thing should be all rewrited better
-    """
-
-    rows = kwargs["rows"]
-    cols = kwargs["cols"]
-    poison_position = kwargs["poison_position"]
-
-    game = Chomp(rows=rows, cols=cols, poison_position=poison_position)
-    turn = random.randint(0, 1) 
-    result = (0, 0)
-
-    if graphics:
-        print(f"\n🍫 Welcome to Chomp ({rows}x{cols})!")
-        print(f"The piece at position ({game.poison_position}) is poisoned. Don't eat it!\n")
-
-    while not game.game_over:
-        if graphics:
-            game.display()
-
-        move = players[turn].move(game)
-        game.apply_move(move)
-        if graphics:
-            print(f"Player {turn}'s move : {move}")
-        if game.game_over:
-            result = (1, 0) if turn == 1 else (0, 1)
-            if graphics:
-                show_end_screen(turn)
-            return result
-
-        turn = turn + 1
-        turn = turn % 2
-
-def play_ping_pong(players = [RandomIndividual(), RandomIndividual()], graphics = True, **kwargs):
-    """
-        This play fun function follows the gym env protocol. NOT ENTIRELY TRUE. TO REWRITE IT BETTER
-        This is good for RL bot.
-    """
-
-    env = PongEnv(**kwargs)
-    state, _ = env.reset(done = True)
-
-    done = False
-
-    while True:
-
-        if isinstance(players[0], RandomIndividual):
-            action_a = players[0].move(env)
-        else:
-            action_a = players[0].move((state, True)) # The boolean flag represent if the player is the first or the second
-        if isinstance(players[1], RandomIndividual):
-            action_b = players[1].move(env)
-        else:
-            action_b = players[1].move((state, False))
-
-        state, (r_a, r_b), done, scored, _ = env.step(action_a, action_b)
-
-        # THIS COULD ALSO BEEN NON-IMPLEMENTED
-        players[0].update(r_a)
-        players[1].update(r_b)
-
-        if graphics:
-            env.render_ascii()
-            time.sleep(0.01)
-        
-        if done:
-            if env.score_a > env.score_b:
-                return (1, 0)
-            return (0, 1)
-
-        if scored: # needed for the ping pong game but should be adapted to the gymansium protocol 
-            env.reset(done)
 
 def play_boxing(players = [RandomIndividual(), RandomIndividual()], graphics = True, **kwargs):
     """
@@ -103,7 +20,7 @@ def play_boxing(players = [RandomIndividual(), RandomIndividual()], graphics = T
         This is good for RL bot.
     """
 
-    env = BoxingEnv(graphics)
+    env = BoxingEnv(render_mode = "human" if graphics else "no")
 
     obs, info = env.reset()
 
@@ -119,7 +36,7 @@ def play_boxing(players = [RandomIndividual(), RandomIndividual()], graphics = T
         else:
             action_b = players[1].move((obs, False))
         
-        obs, (r_a, r_b), done, truncated, info = env.step(env.action_space.sample())
+        obs, (r_a, r_b), done, truncated, info = env.step((action_a, action_b))
 
         try:
             env.render()
@@ -130,7 +47,7 @@ def play_boxing(players = [RandomIndividual(), RandomIndividual()], graphics = T
         players[0].update(r_a)
         players[1].update(r_b)
 
-        if done:
+        if done or truncated:
             if env.p1_score > env.p2_score:
                 return (1, 0)
             return (0, 1)
