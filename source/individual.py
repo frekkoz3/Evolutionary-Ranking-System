@@ -18,6 +18,7 @@
 from itertools import count
 from policy import *
 from gymnasium import Env
+import copy
 
 class Individual():
     _ids = count(0)
@@ -38,6 +39,9 @@ class Individual():
         self.opponent_history.append(opponent_id)
         self.elo_history.append(self.elo)
         self.elo = max(new_elo, 0)
+
+    def overwrite(self, other):
+        self.__dict__ = copy.deepcopy(other.__dict__)
 
     def move(self):
         pass
@@ -64,7 +68,7 @@ class GeneticPolicyIndividual(Individual):
     def move(self, game):
         state = self.policy.transform(game.get_state())
         return self.policy[state]
-    
+
 if __name__ == '__main__':
     
     pass

@@ -48,13 +48,16 @@ def run_match(p1, p2, play_fun, graphics, k, lam, kwargs):
     
     x_new, y_new = elo.return_function(x, y, result, k=k, lam=lam)
 
-    return (p1.get_id(), p2.get_id(), x_new, y_new)
+    p1.update_elo(p2.get_id(), x_new)
+    p2.update_elo(p1.get_id(), y_new)
+
+    return (p1, p2)
 
 from joblib import Parallel, delayed
 
 def parallel_round(players, matchmaking_fun, play_fun, graphics, k, lam, n_jobs=-1, **kwargs):
     """
-        This function provide an handler for playing all the rounds one selected the matches. 
+        This function provide an handler for playing all the rounds once selected the matches in parallel. 
         Please note that one could actually change the game just changing the play_fun.
         It is just imposed that the play function uses the graphics option (true / false).
         The k and lam are used from the elo updater.
@@ -70,16 +73,13 @@ def parallel_round(players, matchmaking_fun, play_fun, graphics, k, lam, n_jobs=
     ) # this works on copy of the actual players so now we have to copy them back
 
     # Apply the updates to the real objects
-    for p1_id, p2_id, x_new, y_new in results:
-        real_p1 = players_map[p1_id]
-        real_p2 = players_map[p2_id]
-
-        real_p1.update_elo(p2_id, x_new)
-        real_p2.update_elo(p1_id, y_new)
+    for p1, p2 in results:
+        players_map[p1.get_id()].overwrite(p1)
+        players_map[p2.get_id()].overwrite(p2)
 
 def round(players : list[ind.Individual], matchmaking_fun,  play_fun, graphics : bool, k : int, lam : int, **kwargs):
     """
-        This function provide an handler for playing all the rounds one selected the matches. 
+        This function provide an handler for playing all the rounds once selected the matches. 
         Please note that one could actually change the game just changing the play_fun.
         It is just imposed that the play function uses the graphics option (true / false).
         The k and lam are used from the elo updater.
