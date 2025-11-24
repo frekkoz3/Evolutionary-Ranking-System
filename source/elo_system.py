@@ -14,6 +14,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 from tqdm import tqdm
 
+
 def show_results(players : list[ind.Individual], log_log = False):
     """
         This function shows results in terms of elo obtained by all the players.

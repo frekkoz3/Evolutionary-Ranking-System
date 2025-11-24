@@ -4,3 +4,4 @@ matplotlib==3.10.7
 numpy==2.3.5
 pygame==2.6.1
 tqdm==4.67.1
+snakeviz==2.2.2

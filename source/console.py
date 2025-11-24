@@ -49,9 +49,11 @@ def play_boxing(players = [RandomIndividual(), RandomIndividual()], graphics = T
         players[1].update(r_b)
 
         if done or truncated:
-            if env.p1_score > env.p2_score:
+            if env.p1.score > env.p2.score:
                 return (1, 0)
-            return (0, 1)
+            elif env.p2.score > env.p1.score:
+                return (0, 1)
+            return (0, 0)
         
         try:
             env.render()

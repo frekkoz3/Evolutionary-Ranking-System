@@ -50,9 +50,12 @@ def return_function(elo_x, elo_y, result, k : int = 20, lam : int = 400):
         ELO (X) <- ELO(X) + k*(result[x] - p_x)
         ELO (Y) <- ELO(Y) + k*(result[y] - p_y)
     """
-    assert result == (1, 0) or result == (0, 1)
+    assert result == (1, 0) or result == (0, 1) or result == (0, 0)
     assert isinstance(k, int)
     assert isinstance(lam, int)
+
+    if result == (0, 0):
+        return elo_x, elo_y # if no one win for now there is a "no gain" policy
     
     p_x , p_y = compute_winning_probability(elo_x, elo_y, lam)
     new_elo_x = elo_x + k*(result[0] - p_x)

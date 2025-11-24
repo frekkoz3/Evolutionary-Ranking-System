@@ -92,9 +92,6 @@ class BoxingEnv(gym.Env):
         self.p1 = Boxer(self.W//2 - 50 - 50//2, self.H//2 - self.HUD_HEIGHT, (200, 50, 50), "P1") # - 50 - half its width
         self.p2 = Boxer(self.W//2 + 50 - 50//2, self.H//2 - self.HUD_HEIGHT, (50, 50, 200), "P2")
 
-        self.p1_score = 0
-        self.p2_score = 0
-
         self.time = 0
 
         obs = np.zeros((self.H, self.W, 3), dtype=np.uint8)
