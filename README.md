@@ -1,4 +1,4 @@
-# Evolutionary Rankyng System
+# 🧬​ EVOLUTIONARY RANKING SYSTEM
 
 This is the repo for the final project of the "Optimization for AI" course.
 
@@ -11,7 +11,7 @@ In the end propers ranks will be added in order to create different "level of di
 
 To begin with we must talk about what is the ELO.
 
-## ELO
+## ♟️​ ELO
 
 > The Elo (ranking) system is a method for calculating the relative skill levels of players in zero-sum games such as chess or esports. (...) The difference in the ratings between two players serves as a predictor of the outcome of a match. Two players with equal ratings who play against each other are expected to score an equal number of wins. A player whose rating is 100 points greater than their opponent's is expected to score 64%; if the difference is 200 points, then the expected score for the stronger player is 76%.
 
@@ -19,7 +19,7 @@ from [*Wikipedia*](https://en.wikipedia.org/wiki/Elo_rating_system)
 
 Whenever an individual plays against an other one it can gain or lose ELO points based on the match's result and in the prior success' probability.
 
-The ELO ranking system is something that must be tuned and it is not a really easy task.\\
+The ELO ranking system is something that must be tuned and it is not a really easy task.\
 For that, during this project, I will use a simple version of it defined as follows:
 
 1. Starting with a population of $n$ individuals, each of them will have an uniform probability of winning against each other. This means that $ELO(x) = c \forall x \in Population$, where $c \in \mathbb{N}$ is a positive integer.
@@ -32,23 +32,86 @@ For that, during this project, I will use a simple version of it defined as foll
 
 Now let's talk about individuals.
 
-## INDIVIDUALS
+## 👾​ INDIVIDUALS
 
-Individuals should be simple yet effective algorithms capable of learning from the matches (a really important thing about this whole system is to help moving in the learning space).\\
-The idea for this project is to let individuals be ????.
+Indivudals are essentialy DQN networks.\
+DQN is a RL algorithm that uses deep neural network to approximate the Q-value table for each pair (state, action).\
+More about the DQN can be found directly in the **'dqn experiment'** folder in the **dqn experiment.md** file.
 
-### MUTATIONS and CROSSOVERS
+Initially individuals should have been simpler, but in order to produce more variety it has been decided to use a much more complex algorithm such DQN.
+
+---
+
+### 🧫 MUTATIONS and CROSSOVERS
 
 > Here will be described how mutations and crossovers work in this system.
 
 ---
 
-## RANKS
+## 🏆​ RANKS
 
 > Here will be presented the idea for the ranks (bronze silver gold etc).
 
 ---
 
-## PLACEMENTS MATCHES and MUTATIONS
+## ​🎯 PLACEMENTS MATCHES and MUTATIONS
 
 > Here will be presented the mechanism of "placements matches" and how it affects crossovers and mutations (if the offspring beat or not the parent).
+
+---
+
+### 📌​ Structure
+
+```bash
+Evolutionary-Ranking-System
+│
+├── data                     # Folder containing data
+├── literature               # Folder containing some papers regarding the argument
+├── source                   # Folder containing the code
+    ├── debug                # Folder for the debugging
+        └── profiles         # Folder containing debugging profiles of the code
+    ├── dqn experiment       # Folder containing an experiment about the DQN
+    ├── games                # Folder containing the implementation of some desired games as gymnasium environment
+        └── boxing           # Folder containing the implementation of a variant of the "boxing 2600" game as gymnasium environment
+    ├── console.py           # Python implementation of the handler between agents and environments
+    ├── elo_system.py        # Python implementation of the wrapper for the entire project
+    ├── ELO.py               # Python implementation of the ELO
+    ├── evo_utils.py         # Python implementation of some utils for the evolutionary phase
+    ├── individual.py        # Python implementation of the individual class
+    ├── main.py              # Main function to call
+    ├── matchmaking.py       # Python implementation of the matchmaking system
+    └── policy.py            # Python implementation of the policy system
+├── README.md (this file)
+├── requirements.txt         # Requirements for the virtual environment
+└── todo.md                  # File containing the remaing things to develop
+```
+
+---
+
+### 📌​ How to use
+
+This is the simplest example of usage of the system.
+
+1. Set up the virtual environment:
+
+    ```console
+    .../Evolutionary-Ranking-System/.venv/Scripts/activate
+    ```
+
+2. Install requirements.txt:
+
+    ```console
+    .../Evolutionary-Ranking-System/pip install -r requirements.txt
+    ```
+
+3. Change directory:
+
+    ```console
+    .../Evolutionary-Ranking-System cd source
+    ```
+
+4. Run the *main.py* file:
+
+    ```console
+    .../Evolutionary-Ranking-System/source py main.py
+    ```

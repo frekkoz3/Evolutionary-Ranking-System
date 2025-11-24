@@ -5,6 +5,7 @@
     boxing.py
 
     This file contain the implementation of the game "boxing".
+    The boxing environment follows the gymnasium protocol.
 
     Class list:
         - BoxingEnv

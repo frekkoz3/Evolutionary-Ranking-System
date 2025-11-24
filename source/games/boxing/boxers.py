@@ -5,6 +5,7 @@
     boxer.py
 
     This file contain the implementation of the boxer class.
+    These boxers are thought as simple square object that can land punches of rectangular shape.
 
     Class list:
         - Boxer
