@@ -66,8 +66,8 @@ class BoxingEnv(gym.Env):
         self.clock = None
 
         # screen sizes
-        self.W = 600
-        self.H = 800
+        self.W = 450
+        self.H = 500
 
         # Ring bounds:
         # leave a HUD zone of 50px at top for points
