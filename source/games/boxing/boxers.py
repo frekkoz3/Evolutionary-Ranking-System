@@ -40,9 +40,9 @@ class Boxer:
 
         # Punch definitions: (startup, active, recovery, stamina_cost)
         self.PUNCHES = {
-            0: (5, 4, 8, 5),     # jab
-            1: (10, 4, 14, 12),  # hook
-            2: (14, 4, 18, 16),  # uppercut
+            0: (5, 1, 8, 5),     # jab
+            1: (10, 1, 14, 12),  # hook
+            2: (14, 1, 18, 16),  # uppercut
         }
 
     # ---------------------------------------------------------

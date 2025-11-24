@@ -18,8 +18,8 @@ from .boxers import Boxer
 class UserClosingWindowException(Exception):
     pass
 
-FPS = 30 
-FRAME_DELAY = 5 # frame to wait between each decision
+FPS = 60
+FRAME_DELAY = 1 # frame to wait between each decision
 MAXIMUM_TIME = 120 # time in second
 # the total maximum time in terms of time step is maximum_time * fps // frame_delay 
 
@@ -38,6 +38,17 @@ class BoxingEnv(gym.Env):
         # 5 = jab, 6 = hook, 7 = uppercut
         # ------------------------------------------------------
         self.action_space = spaces.Discrete(8)
+
+        # Keymap used by real users
+        self.keymap = {
+            pygame.K_w : 1,
+            pygame.K_s : 2, 
+            pygame.K_a : 3, 
+            pygame.K_d : 4,
+            pygame.K_q : 5,
+            pygame.K_e : 6,
+            pygame.K_r : 7 
+        }
 
         # Observation could later be replaced by game state arrays
         self.observation_space = spaces.Box(
@@ -65,10 +76,6 @@ class BoxingEnv(gym.Env):
         self.RING_TOP = 50
         self.RING_RIGHT = self.W - 20
         self.RING_BOTTOM = self.H - 20
-
-        # Scores
-        self.p1_score = 0
-        self.p2_score = 0
 
         # Timer
         self.time = 0
@@ -106,8 +113,20 @@ class BoxingEnv(gym.Env):
         # -------------------------------
         # Movement
         # -------------------------------
-        self.p1.move(a1)
-        self.p2.move(a2)
+
+        def legit_movement(p1 : Boxer, p2 : Boxer, action):
+            """
+                This function simulate the movement one step ahead in the future. 
+                If a player collaps over an other player it return False, meaning the action is invalid.
+            """
+            pt = Boxer(p1.x, p1.y, p1.color, name="temp")
+            pt.move(action)
+            return not pt.get_rect().colliderect(p2.get_rect())
+        
+        if legit_movement(self.p1, self.p2, a1):
+            self.p1.move(a1)
+        if legit_movement(self.p2, self.p1, a2):
+            self.p2.move(a2)
 
         self._clamp_in_ring(self.p1)
         self._clamp_in_ring(self.p2)
@@ -130,24 +149,19 @@ class BoxingEnv(gym.Env):
         # -------------------------------
         # Hit detection
         # -------------------------------
-        reward_p1 = 0
-        reward_p2 = 0
 
-        # p1 hits p2
-        if self.p1.hitbox and self.p1.hitbox.colliderect(self.p2.get_rect()):
-            if self.p2.state == 1: # combo reset
-                self.p2.cancel_punch()
-            self.p2.stamina -= 7
-            self.p1_score += 1
-            reward_p1 += 1
-
-        # p2 hits p1
-        if self.p2.hitbox and self.p2.hitbox.colliderect(self.p1.get_rect()):
-            if self.p1.state == 1:
-                self.p1.cancel_punch()
-            self.p1.stamina -= 7
-            self.p2_score += 1
-            reward_p2 += 1
+        def hit_detection(p1 : Boxer, p2 : Boxer):
+            if p1.hitbox and p1.hitbox.colliderect(p2.get_rect()):
+                if p2.state == 1: # combo reset
+                    p2.cancel_punch()
+                p1.score += 1
+                return +1, -0.1 # penalizing to get hit
+            return 0, 0
+        
+        reward_p1, reward_p2 = hit_detection(self.p1, self.p2)
+        t1, t2 = hit_detection(self.p2, self.p1)
+        reward_p1 += t1
+        reward_p2 += t2
 
         # -------------------------------
         # Regenerate stamina slowly
@@ -171,10 +185,7 @@ class BoxingEnv(gym.Env):
         self.time += 1
         if self.time >= MAXIMUM_TIME * FPS // FRAME_DELAY:
             return obs, reward, True, True, {} 
-
-        """if self.render_mode == "human":
-            self.render()"""
-
+        
         return obs, reward, terminated, False, {}
 
     # =======================================================
@@ -237,8 +248,8 @@ class BoxingEnv(gym.Env):
         # --------------------------------------------------
         font = pygame.font.SysFont("Arial", 28) #Font("./fonts/PressStart2P.ttf", 28) # to solve the path issues
         text_color = (255, 255, 255)
-        p1_score = font.render(f"{self.p1_score}", True, text_color)
-        p2_score = font.render(f"{self.p2_score}", True, text_color)
+        p1_score = font.render(f"{self.p1.score}", True, text_color)
+        p2_score = font.render(f"{self.p2.score}", True, text_color)
         divider = font.render("|", True, text_color)
         self.window.blit(p1_score, (self.W//2 - 65, 10))
         self.window.blit(divider, (self.W//2 - 15, 10))
@@ -263,8 +274,11 @@ if __name__ == '__main__':
     t = 0
 
     while not done:    
+        
         actions = (env.action_space.sample(), env.action_space.sample())
-        obs, rewards, done, truncated, info = env.step(env.action_space.sample())
+
+        obs, rewards, done, truncated, info = env.step((4, 3))
+
         try:
             env.render()
         except UserClosingWindowException as e:

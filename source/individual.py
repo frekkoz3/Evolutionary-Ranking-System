@@ -49,6 +49,26 @@ class Individual():
     def update(self, reward):
         pass
 
+import pygame
+
+class RealIndividual(Individual):
+
+    def move(self, env):
+        """
+        This move function will use the env.keymap attribute.
+        the keymap is a dict mapping pygame keys to actions.
+        """
+        keys = pygame.key.get_pressed()
+
+        # default no-op
+        action = 0
+
+        for key, action_value in env.keymap.items():
+            if keys[key]:
+                return action_value
+        
+        return action
+    
 class RandomIndividual(Individual):
     
     def move(self, game : Env):
