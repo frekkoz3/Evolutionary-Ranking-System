@@ -1,7 +1,8 @@
 # 🧪 DQN EXPERIMENT
 
-This folder contains a minimal implementation of a Deep Q-Network (DQN) learning to play the Atari 2600 game Boxing.
-The goal of this experiment is to demonstrate how a reinforcement learning agent can learn competitive behavior against a very simple built-in logical opponent.
+This folder contains a minimal implementation of a Deep Q-Network (DQN) learning to play the Atari 2600 game Boxing.\
+The goal of this experiment is to demonstrate how a reinforcement learning agent can learn competitive behavior against a very simple built-in logical opponent.\
+I'll follow the DQN implementation presented by this [Pytorch's tutorial](https://docs.pytorch.org/tutorials/intermediate/reinforcement_q_learning.html).
 
 ---
 

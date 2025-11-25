@@ -26,8 +26,8 @@ class Individual():
     def __init__(self, init_elo = 100):
         self.elo = init_elo
         self.id =  next(Individual._ids)
-        self.elo_history = []
-        self.opponent_history = []
+        """self.elo_history = []
+        self.opponent_history = []"""
 
     def get_elo(self):
         return self.elo
@@ -36,8 +36,8 @@ class Individual():
         return self.id
     
     def update_elo(self, opponent_id, new_elo):
-        self.opponent_history.append(opponent_id)
-        self.elo_history.append(self.elo)
+        """self.opponent_history.append(opponent_id)
+        self.elo_history.append(self.elo)"""
         self.elo = max(new_elo, 0)
 
     def overwrite(self, other):
