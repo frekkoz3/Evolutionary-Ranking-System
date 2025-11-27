@@ -6,8 +6,15 @@
     
     This file is used just as final wrapper.
 """
-from elo_system import play
-from console import play_boxing
+import sys
+import os
+
+# Add the root of the project to Python path
+ROOT = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+sys.path.append(ROOT)
+
+from source.elo_system import play
+from source.console import play_boxing
 
 if __name__ == '__main__':
     

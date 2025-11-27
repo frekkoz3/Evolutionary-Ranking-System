@@ -14,9 +14,15 @@
         - RandomIndividual
         - GeneticPolicyIndividual
 """
+import sys
+import os
+
+# Add the root of the project to Python path
+ROOT = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+sys.path.append(ROOT)
 
 from itertools import count
-from policy import *
+from source.policy import *
 from gymnasium import Env
 import copy
 
@@ -42,6 +48,9 @@ class Individual():
 
     def overwrite(self, other):
         self.__dict__ = copy.deepcopy(other.__dict__)
+
+    def observe(self, obs, action, rew, new_obs, done):
+        pass
 
     def move(self):
         pass

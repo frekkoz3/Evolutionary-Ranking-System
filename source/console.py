@@ -9,18 +9,24 @@
     Function list:
         - play_boxing()
 """
+import sys
+import os
 
-from individual import *
+# Add the root of the project to Python path
+ROOT = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+sys.path.append(ROOT)
 
-from games.boxing.boxing import *
+from source.individual import *
 
-def play_boxing(players = [RandomIndividual(), RandomIndividual()], graphics = True, **kwargs):
+from source.games.boxing.boxing import *
+
+def play_boxing(players = [RandomIndividual(), RandomIndividual()], render_mode = "human", **kwargs):
     """
         This play fun function follows the gym env protocol.
         This is good for RL bot.
     """
 
-    env = BoxingEnv(render_mode = "human" if graphics else "no")
+    env = BoxingEnv(render_mode)
 
     obs, info = env.reset()
 
@@ -36,17 +42,24 @@ def play_boxing(players = [RandomIndividual(), RandomIndividual()], graphics = T
         if isinstance(players[0], RandomIndividual) or isinstance(players[0], RealIndividual):
             action_a = players[0].move(env)
         else:
-            action_a = players[0].move((obs, True)) # The boolean flag represent if the player is the first or the second
+            action_a = players[0].move(np.append(obs, True), env) # The boolean flag represent if the player is the first or the second
         if isinstance(players[1], RandomIndividual) or isinstance(players[1], RealIndividual):
             action_b = players[1].move(env)
         else:
-            action_b = players[1].move((obs, False))
+            action_b = players[1].move(np.append(obs, False), env)
         
-        obs, (r_a, r_b), done, truncated, info = env.step((action_a, action_b))
+        new_obs, (r_a, r_b), done, truncated, info = env.step((action_a, action_b))
 
-        # THIS COULD ALSO BEEN NON-IMPLEMENTED
-        players[0].update(r_a)
-        players[1].update(r_b)
+        # OBSERVE THE ENVIRONMENT
+        players[0].observe(np.append(obs, True), action_a, r_a, np.append(new_obs, True), done)
+        players[1].observe(np.append(obs, False), action_b, r_b, np.append(new_obs, False), done)
+
+        # UPDATE THE OBSERVATION
+        obs = new_obs
+
+        # UPDATE THE INDIVIDUALS
+        players[0].update()
+        players[1].update()
 
         if done or truncated:
             if env.p1.score > env.p2.score:

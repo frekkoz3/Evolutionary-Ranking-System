@@ -6,10 +6,17 @@
     
     This file contains the handler for the entire game using the elo_system.
 """
-import ELO as elo 
-import console as cns
-import individual as ind
-import matchmaking as mmk
+import sys
+import os
+
+# Add the root of the project to Python path
+ROOT = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+sys.path.append(ROOT)
+
+import source.ELO as elo 
+import source.console as cns
+import source.individual as ind
+import source.matchmaking as mmk
 import numpy as np
 from matplotlib import pyplot as plt
 from tqdm import tqdm

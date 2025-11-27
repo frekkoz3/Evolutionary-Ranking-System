@@ -27,7 +27,7 @@ class DQN(nn.Module):
         self.layer3 = nn.Linear(128, n_actions)
 
     # Called with either one element to determine next action, or a batch
-    # during optimization. Returns tensor([[left0exp,right0exp]...]).
+    # during optimization.
     def forward(self, x):
         x = F.relu(self.layer1(x))
         x = F.relu(self.layer2(x))
@@ -48,13 +48,14 @@ EPS_END = 0.01
 EPS_DECAY = 2500
 TAU = 0.005
 LR = 3e-4
+REPLAY_SIZE = 1000
 
 Transition = namedtuple('Transition',
-                        ('state', 'action', 'next_state', 'reward'))
+                        ('state', 'action', 'next_state', 'reward', 'done'))
 
 class DQNAgent(Individual):
 
-    def __init__(self, n_actions, n_observations, device, init_elo=100):
+    def __init__(self, n_actions, n_observations, device = 'cpu', init_elo=100):
         super().__init__(init_elo)
 
         # Get number of actions from gym action space
@@ -67,11 +68,12 @@ class DQNAgent(Individual):
         self.target_net.load_state_dict(self.policy_net.state_dict())
 
         self.optimizer = optim.AdamW(self.policy_net.parameters(), lr=LR, amsgrad=True)
-        self.memory = ReplayMemory(10000)
+        self.memory = ReplayMemory(REPLAY_SIZE)
 
         self.steps_done = 0
 
-    def move(self, state, env, device):
+    def move(self, state, env, device = 'cpu'):
+        state = torch.tensor(state, dtype=torch.float32, device=device)
         sample = random.random()
         eps_threshold = EPS_END + (EPS_START - EPS_END) * \
             math.exp(-1. * self.steps_done / EPS_DECAY)
@@ -81,16 +83,18 @@ class DQNAgent(Individual):
                 # t.max(1) will return the largest column value of each row.
                 # second column on max result is index of where max element was
                 # found, so we pick action with the larger expected reward.
-                return self.policy_net(state).max(1).indices.view(1, 1)
+                return torch.argmax(self.policy_net(state)).item()
         else:
-            return torch.tensor([[env.action_space.sample()]], device=device, dtype=torch.long)
-        
-    def update(self, device, state, action, next_state, reward):
+            return env.action_space.sample()
+    
+    def observe(self, obs, action, reward, next_obs, done):
+        self.memory.push(obs, action, reward, next_obs, done)
 
-        self.memory.push(state, action, next_state, reward)
+    def update(self, device = 'cpu'):
 
         if len(self.memory) < BATCH_SIZE:
             return
+        
         transitions = self.memory.sample(BATCH_SIZE)
 
         # Transpose the batch (see https://stackoverflow.com/a/19343/3343043 for

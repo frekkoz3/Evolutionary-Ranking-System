@@ -84,6 +84,9 @@ class BoxingEnv(gym.Env):
         # Initialize boxers
         self.reset()
 
+    def get_obs(self):
+        return np.array([self.p1.x,  self.p1.y, self.p2.x, self.p2.y, self.p1.state, self.p2.state, self.p1.stamina, self.p2.stamina, self.time])
+
     # =======================================================
     # Reset
     # =======================================================
@@ -95,8 +98,7 @@ class BoxingEnv(gym.Env):
 
         self.time = 0
 
-        obs = np.zeros((self.H, self.W, 3), dtype=np.uint8)
-        return obs, {}
+        return self.get_obs(), {}
 
     # =======================================================
     # Step
@@ -174,7 +176,6 @@ class BoxingEnv(gym.Env):
         if self.p1.score >= 100 or self.p2.score >= 100:
             terminated = True
 
-        obs = np.zeros((self.H, self.W, 3), dtype=np.uint8) # this must be modified!!
         reward = (reward_p1, reward_p2)
 
         # --------------------------------
@@ -182,9 +183,9 @@ class BoxingEnv(gym.Env):
         # --------------------------------
         self.time += 1
         if self.time >= MAXIMUM_TIME * FPS // FRAME_DELAY:
-            return obs, reward, True, True, {} 
+            return self.get_obs(), reward, True, True, {} 
         
-        return obs, reward, terminated, False, {}
+        return self.get_obs(), reward, terminated, False, {}
 
     # =======================================================
     # Clamp player in the ring area
