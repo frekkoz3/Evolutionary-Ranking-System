@@ -50,9 +50,12 @@ def play_boxing(players = [RandomIndividual(), RandomIndividual()], render_mode 
         
         new_obs, (r_a, r_b), done, truncated, info = env.step((action_a, action_b))
 
+        extra_a = np.array([1.0])   # for player A
+        extra_b = np.array([0.0])   # for player B
+
         # OBSERVE THE ENVIRONMENT
-        players[0].observe(np.append(obs, True), action_a, r_a, np.append(new_obs, True), done)
-        players[1].observe(np.append(obs, False), action_b, r_b, np.append(new_obs, False), done)
+        players[0].observe(np.concatenate([obs, extra_a]).astype(np.float32), action_a, r_a, np.concatenate([new_obs, extra_a]).astype(np.float32), done)
+        players[1].observe(np.concatenate([obs, extra_b]).astype(np.float32), action_b, r_b, np.concatenate([new_obs, extra_b]).astype(np.float32), done)
 
         # UPDATE THE OBSERVATION
         obs = new_obs

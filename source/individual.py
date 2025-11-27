@@ -58,6 +58,9 @@ class Individual():
     def update(self, reward):
         pass
 
+    def save(self):
+        pass
+
 import pygame
 
 class RealIndividual(Individual):

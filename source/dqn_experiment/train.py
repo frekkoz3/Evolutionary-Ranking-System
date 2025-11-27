@@ -27,8 +27,10 @@ if __name__ == '__main__':
     n_actions = env.action_space.n
     p1 = DQNAgent(n_actions, n_observations)
     p2 = DQNAgent(n_actions, n_observations)
-    n_games = 100
+    n_games = 1500
     for i in tqdm(range (n_games), desc="Games on going", unit="games"):
+        p1.update_t = 0
+        p2.update_t = 0
         if i%2 == 0:
             play_boxing(players=[p1, p2], render_mode=render_mode)
         else:

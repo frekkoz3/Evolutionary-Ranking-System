@@ -20,7 +20,7 @@ class UserClosingWindowException(Exception):
     pass
 
 FPS = 60
-FRAME_DELAY = 1 # frame to wait between each decision
+FRAME_DELAY = 1 # frame to wait between each decision -> this must be set also in the individual 
 MAXIMUM_TIME = 120 # time in second
 # the total maximum time in terms of time step is maximum_time * fps // frame_delay 
 
@@ -85,6 +85,9 @@ class BoxingEnv(gym.Env):
         self.reset()
 
     def get_obs(self):
+        """
+            p1.x, p1.y, p2.x, p2.y, p1.state, p2.state, p1.stamina, p2.stamina, time
+        """
         return np.array([self.p1.x,  self.p1.y, self.p2.x, self.p2.y, self.p1.state, self.p2.state, self.p1.stamina, self.p2.stamina, self.time])
 
     # =======================================================
@@ -123,10 +126,15 @@ class BoxingEnv(gym.Env):
             pt.move(action)
             return not pt.get_rect().colliderect(p2.get_rect())
         
+        movement_learning_1 = -1
+        movement_learning_2 = -1
+        
         if legit_movement(self.p1, self.p2, a1):
             self.p1.move(a1)
+            movement_learning_1 = 0
         if legit_movement(self.p2, self.p1, a2):
             self.p2.move(a2)
+            movement_learning_2 = 0
 
         self._clamp_in_ring(self.p1)
         self._clamp_in_ring(self.p2)
@@ -155,13 +163,15 @@ class BoxingEnv(gym.Env):
                 if p2.state == 1: # combo reset
                     p2.cancel_punch()
                 p1.score += 1
-                return +1, -0.1 # penalizing to get hit
+                return +10, -0.1 # penalizing to get hit
+            if p1.hitbox and not p1.hitbox.colliderect(p2.get_rect()):
+                return -0.1, 0.1 # penalizing missed punches  
             return 0, 0
         
         reward_p1, reward_p2 = hit_detection(self.p1, self.p2)
         t1, t2 = hit_detection(self.p2, self.p1)
-        reward_p1 += t1
-        reward_p2 += t2
+        reward_p1 += t1 + movement_learning_1
+        reward_p2 += t2 + movement_learning_2
 
         # -------------------------------
         # Regenerate stamina slowly
