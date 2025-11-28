@@ -51,6 +51,9 @@ class Individual():
     def move(self):
         pass
 
+    def reset(self):
+        pass
+
     def update(self):
         pass
 

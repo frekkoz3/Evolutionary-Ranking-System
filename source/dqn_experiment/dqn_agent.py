@@ -86,6 +86,11 @@ class DQNAgent(Individual):
 
         self.update_t = 0
 
+    def reset(self):
+
+        self.steps_done = 0
+        self.update_t = 0
+
     def move(self, state, env):
         state = torch.tensor(state, dtype=torch.float32, device=self.device)
         sample = random.random()

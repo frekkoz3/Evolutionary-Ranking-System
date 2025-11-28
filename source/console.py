@@ -10,11 +10,11 @@
         - play_boxing()
 """
 
-"""from source.individual import *
-from source.games.boxing.boxing import *"""
+from source.individual import *
+from source.games.boxing.boxing import *
 
-from individual import *
-from games.boxing.boxing import *
+"""from individual import *
+from games.boxing.boxing import *"""
 
 def play_boxing(players = [RandomIndividual(), RandomIndividual()], render_mode = "human", eval_mode = True, **kwargs):
     """
@@ -27,12 +27,13 @@ def play_boxing(players = [RandomIndividual(), RandomIndividual()], render_mode 
     obs_a = env.get_obs('p1')
     obs_b = env.get_obs('p2')
 
-    done = False
+    done, truncated = False, False
 
     try:
         env.render()
     except UserClosingWindowException as e:
         done, truncated = True, True
+        env.close()
         return (0, 0)
 
     while not done:    
@@ -70,9 +71,12 @@ def play_boxing(players = [RandomIndividual(), RandomIndividual()], render_mode 
 
         if done or truncated:
             if env.p1.score > env.p2.score:
+                env.close()
                 return (1, 0)
             elif env.p2.score > env.p1.score:
+                env.close()
                 return (0, 1)
+            env.close()
             return (0, 0)
         
     env.close()
