@@ -197,7 +197,16 @@ class BoxingEnv(gym.Env):
         terminated = False # to add the truncation for the time
         if self.p1.score >= 100 or self.p2.score >= 100:
             terminated = True
-
+            if self.p1.score > self.p2.score:
+                reward_p1 = 100
+                reward_p2 = -10
+            elif self.p2.score > self.p1.score:
+                reward_p1 = -10
+                reward_p2 = 100
+            else:
+                reward_p1 = -1
+                reward_p2 = -1
+        
         reward = (reward_p1, reward_p2)
 
         # --------------------------------
@@ -205,6 +214,16 @@ class BoxingEnv(gym.Env):
         # --------------------------------
         self.time += 1
         if self.time >= MAXIMUM_TIME * FPS // FRAME_DELAY:
+            if self.p1.score > self.p2.score:
+                reward_p1 = 100
+                reward_p2 = -10
+            elif self.p2.score > self.p1.score:
+                reward_p1 = -10
+                reward_p2 = 100
+            else:
+                reward_p1 = -1
+                reward_p2 = -1
+            reward = (reward_p1, reward_p2)
             return self.get_obs(), reward, True, True, {} 
         
         return self.get_obs(), reward, terminated, False, {}
