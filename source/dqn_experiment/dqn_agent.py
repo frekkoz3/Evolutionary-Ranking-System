@@ -177,7 +177,7 @@ class DQNAgent(Individual):
     @classmethod
     def load(cls, path, device='cpu'):
         """Load an agent from a saved checkpoint."""
-        checkpoint = torch.load(path, map_location=device)
+        checkpoint = torch.load(path, map_location=device, weights_only = False)
 
         agent = cls(
             n_actions=checkpoint['n_actions'],

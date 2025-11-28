@@ -163,8 +163,12 @@ class BoxingEnv(gym.Env):
         # -------------------------------
         # Punch update
         # -------------------------------
-        self.p1.update_punch_state(facing_left=False)
-        self.p2.update_punch_state(facing_left=True)
+        if self.p1.get_rect().centerx > self.p2.get_rect().centerx:
+            self.p1.update_punch_state(facing_left=True)
+            self.p2.update_punch_state(facing_left=False)
+        else:
+            self.p1.update_punch_state(facing_left=False)
+            self.p2.update_punch_state(facing_left=True)
 
         # -------------------------------
         # Hit detection

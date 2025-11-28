@@ -10,13 +10,13 @@
         - play_boxing()
 """
 
-from source.individual import *
-from source.games.boxing.boxing import *
+"""from source.individual import *
+from source.games.boxing.boxing import *"""
 
-"""from individual import *
-from games.boxing.boxing import *"""
+from individual import *
+from games.boxing.boxing import *
 
-def play_boxing(players = [RandomIndividual(), RandomIndividual()], render_mode = "human", **kwargs):
+def play_boxing(players = [RandomIndividual(), RandomIndividual()], render_mode = "human", eval_mode = True, **kwargs):
     """
         This play fun function follows the gym env protocol.
         This is good for RL bot.
@@ -59,8 +59,9 @@ def play_boxing(players = [RandomIndividual(), RandomIndividual()], render_mode 
         obs_b = new_obs_b
 
         # UPDATE THE INDIVIDUALS
-        players[0].update()
-        players[1].update()
+        if not eval_mode:
+            players[0].update()
+            players[1].update()
 
         try:
             env.render()
@@ -78,4 +79,4 @@ def play_boxing(players = [RandomIndividual(), RandomIndividual()], render_mode 
 
 if __name__ == '__main__':
 
-    play_boxing(players=[LogicalAIIndividual(), RandomIndividual()], render_mode="human")
+    play_boxing(players=[RealIndividual(), RandomIndividual()], render_mode="human")
