@@ -11,6 +11,10 @@
         - Boxer
 """
 import pygame 
+import math
+
+SIZE = 40
+SPEED = 5
 
 class Boxer:
     """
@@ -20,8 +24,8 @@ class Boxer:
     def __init__(self, x, y, color, name="p1"):
         self.x = x
         self.y = y
-        self.size = 40
-        self.speed = 5
+        self.size = SIZE
+        self.speed = SPEED
         self.color = color
         self.name = name
         self.score = 0
@@ -41,9 +45,9 @@ class Boxer:
 
         # Punch definitions: (startup, active, recovery, stamina_cost)
         self.PUNCHES = {
-            0: (5, 1, 8, 5),     # jab
-            1: (10, 1, 14, 12),  # hook
-            2: (14, 1, 18, 16),  # uppercut
+            0: (5, 1, 5, 15),     # short punch
+            1: (9, 1, 9, 10),  # mid punch
+            2: (12, 1, 12, 5),  # long punch
         }
 
     # ---------------------------------------------------------
@@ -68,6 +72,7 @@ class Boxer:
 
         startup, active, recovery, cost = self.PUNCHES[punch_type]
         if self.stamina < cost:
+            print("cannot punch")
             return
 
         self.stamina -= cost
@@ -119,20 +124,19 @@ class Boxer:
         by = self.y
         s = self.size
 
-        if self.punch_type == 0:   # jab
-            hx = bx - 10 if facing_left else bx + s
-            hy = by + s // 4
+        if self.punch_type == 0:   # short
+            hx = bx - 20 if facing_left else bx + s
             w, h = 20, s // 2
 
-        elif self.punch_type == 1: # hook
-            hx = bx - 5 if facing_left else bx + s - 15
-            hy = by + 2
-            w, h = 30, s - 4
+        elif self.punch_type == 1: # mid
+            hx = bx - 30 if facing_left else bx + s + 10
+            w, h = 20, s//2
 
-        elif self.punch_type == 2: # uppercut
-            hx = bx + s//3
-            hy = by - 12
-            w, h = s//2, 25
+        elif self.punch_type == 2: # long
+            hx = bx - 40 if facing_left else bx + s + 20
+            w, h = 20, s//2
+
+        hy = by + s // 2 if facing_left else by
 
         self.hitbox = pygame.Rect(hx, hy, w, h)
 
@@ -152,10 +156,29 @@ class Boxer:
         return pygame.Rect(self.x, self.y, self.size, self.size)
 
     # ---------------------------------------------------------
-    # Regenerate stamina slowly
+    # Regenerate stamina slowly using a sigmoid update based on the current level of stamina
     # ---------------------------------------------------------
     def regenerate(self):
-        self.stamina = min(self.max_stamina, self.stamina + 0.2)
+
+        def stamina(x, min_value=0.05, max_value=0.2):
+            """
+            x: actual stamina level in [0, 100]
+            min_value: output when x = 0
+            max_value: output when x = 100
+            """
+            # Standard sigmoid centered at 50 with steepness k
+            k = 0.1
+            sigmoid = 1 / (1 + math.exp(-k * (x - 50)))
+
+            # Normalize sig in [0,1] using its values at x=0 and x=100
+            sig0 = 1 / (1 + math.exp(-k * (0 - 50)))
+            sig100 = 1 / (1 + math.exp(-k * (100 - 50)))
+            normalized = (sigmoid - sig0) / (sig100 - sig0)
+
+            # Scale to [min_value, max_value]
+            return min_value + normalized * (max_value - min_value)
+        
+        self.stamina = min(self.max_stamina, self.stamina + stamina(self.stamina))
 
     def __str__(self):
         s = f"{self.name}\n------\npos ({self.x}, {self.y})\nscore : {self.score}\nstamina : {self.stamina}\nstate : {self.state}\n------\n"

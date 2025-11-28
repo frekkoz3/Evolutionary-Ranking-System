@@ -13,8 +13,8 @@ import os
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
 sys.path.append(ROOT)
 
-from source.elo_system import play
-from source.console import play_boxing
+from elo_system import play
+from console import play_boxing
 
 if __name__ == '__main__':
     

@@ -14,15 +14,9 @@
         - RandomIndividual
         - GeneticPolicyIndividual
 """
-import sys
-import os
-
-# Add the root of the project to Python path
-ROOT = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
-sys.path.append(ROOT)
 
 from itertools import count
-from source.policy import *
+from policy import *
 from gymnasium import Env
 import copy
 
@@ -32,6 +26,7 @@ class Individual():
     def __init__(self, init_elo = 100):
         self.elo = init_elo
         self.id =  next(Individual._ids)
+        self.n_matches = 0
         """self.elo_history = []
         self.opponent_history = []"""
 
@@ -45,6 +40,7 @@ class Individual():
         """self.opponent_history.append(opponent_id)
         self.elo_history.append(self.elo)"""
         self.elo = max(new_elo, 0)
+        self.n_matches += 1
 
     def overwrite(self, other):
         self.__dict__ = copy.deepcopy(other.__dict__)
@@ -55,7 +51,7 @@ class Individual():
     def move(self):
         pass
 
-    def update(self, reward):
+    def update(self):
         pass
 
     def save(self):

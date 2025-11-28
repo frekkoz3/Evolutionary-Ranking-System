@@ -11,7 +11,6 @@
         - compute_winning_probability(elo_x, elo_y, lam)
         - return_function(elo_x, elo_y, result, k, lam)
 """
-import numpy as np
 import math
 
 def compute_winning_probability(elo_x, elo_y, lam : int = 400):

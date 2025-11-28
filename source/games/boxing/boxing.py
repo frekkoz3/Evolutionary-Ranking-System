@@ -28,7 +28,6 @@ MAXIMUM_TIME = 120 # time in second
 # Boxing Environment
 # ===========================================================
 class BoxingEnv(gym.Env):
-    metadata = {"render_modes": ["human"], "render_fps": 60}
 
     def __init__(self, render_mode=None, **kwargs):
         super().__init__()
@@ -36,7 +35,7 @@ class BoxingEnv(gym.Env):
         # ------------------------------------------------------
         # Gym spaces (two players, discrete actions)
         # 0 = idle, 1 up, 2 down, 3 left, 4 right,
-        # 5 = jab, 6 = hook, 7 = uppercut
+        # 5 = short punch, 6 = mid punch, 7 = long punch
         # ------------------------------------------------------
         self.action_space = spaces.Discrete(8)
 
@@ -51,14 +50,14 @@ class BoxingEnv(gym.Env):
             pygame.K_r : 7 
         }
 
-        # Observation could later be replaced by game state arrays
+        # For now the observation space is composed by :
+        #  p1.x, p1.y, p2.x, p2.y, p1.state, p2.state, p1.stamina, p2.stamina, time
         self.observation_space = spaces.Box(
-            low=0,
-            high=255,
-            shape=(300, 600, 3),
-            dtype=np.uint8
+            low=-np.inf,
+            high=np.inf,
+            shape=(9,),   # Example: (12,)
+            dtype=np.float32
         )
-
         # ------------------------------------------------------
         # Rendering
         # ------------------------------------------------------
@@ -208,6 +207,7 @@ class BoxingEnv(gym.Env):
     # Render
     # =======================================================
     def render(self):
+
         if self.render_mode != "human":
             return 
         

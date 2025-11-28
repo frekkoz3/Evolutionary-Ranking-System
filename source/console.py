@@ -9,24 +9,16 @@
     Function list:
         - play_boxing()
 """
-import sys
-import os
 
-# Add the root of the project to Python path
-ROOT = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
-sys.path.append(ROOT)
-
-from source.individual import *
-
-from source.games.boxing.boxing import *
+from individual import *
+from games.boxing.boxing import *
 
 def play_boxing(players = [RandomIndividual(), RandomIndividual()], render_mode = "human", **kwargs):
     """
         This play fun function follows the gym env protocol.
         This is good for RL bot.
     """
-
-    env = BoxingEnv(render_mode)
+    env = BoxingEnv(render_mode=render_mode)
 
     obs, info = env.reset()
 
@@ -36,6 +28,7 @@ def play_boxing(players = [RandomIndividual(), RandomIndividual()], render_mode 
         env.render()
     except UserClosingWindowException as e:
         done, truncated = True, True
+        return (0, 0)
 
     while not done:    
 
@@ -64,6 +57,11 @@ def play_boxing(players = [RandomIndividual(), RandomIndividual()], render_mode 
         players[0].update()
         players[1].update()
 
+        try:
+            env.render()
+        except UserClosingWindowException as e:
+            done, truncated = True, True
+
         if done or truncated:
             if env.p1.score > env.p2.score:
                 return (1, 0)
@@ -71,13 +69,8 @@ def play_boxing(players = [RandomIndividual(), RandomIndividual()], render_mode 
                 return (0, 1)
             return (0, 0)
         
-        try:
-            env.render()
-        except UserClosingWindowException as e:
-            done, truncated = True, True
-
     env.close()
 
 if __name__ == '__main__':
 
-    play_boxing(players=[RealIndividual(), RandomIndividual()], graphics=True)
+    play_boxing(players=[RealIndividual(), RandomIndividual()], render_mode="human")
