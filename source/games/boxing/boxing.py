@@ -51,11 +51,11 @@ class BoxingEnv(gym.Env):
         }
 
         # For now the observation space is composed by :
-        #  p1.x, p1.y, p2.x, p2.y, p1.state, p2.state, p1.stamina, p2.stamina, time
+        #  p1.state, p2.state
         self.observation_space = spaces.Box(
             low=-np.inf,
             high=np.inf,
-            shape=(9,),   # Example: (12,)
+            shape=(2*8,),   # twice the size of a player
             dtype=np.float32
         )
         # ------------------------------------------------------
@@ -66,8 +66,8 @@ class BoxingEnv(gym.Env):
         self.clock = None
 
         # screen sizes
-        self.W = 450
-        self.H = 500
+        self.W = 300
+        self.H = 350
 
         # Ring bounds:
         # leave a HUD zone of 50px at top for points
@@ -83,11 +83,19 @@ class BoxingEnv(gym.Env):
         # Initialize boxers
         self.reset()
 
-    def get_obs(self):
+    def get_obs(self, perspective = None):
         """
-            p1.x, p1.y, p2.x, p2.y, p1.state, p2.state, p1.stamina, p2.stamina, time
+            if no perspective is required, a standard representation is given. 
+            p1.state, p2.state 
         """
-        return np.array([self.p1.x,  self.p1.y, self.p2.x, self.p2.y, self.p1.state, self.p2.state, self.p1.stamina, self.p2.stamina, self.time])
+        assert perspective == None or perspective == 'p1' or perspective == 'p2'
+         
+        if perspective == None:
+            return np.array([*self.p1.get_state(), *self.p2.get_state()])
+        if perspective == 'p1':
+            return np.array([*self.p1.get_state(), *self.p2.get_state()])
+        if perspective == 'p2':
+            return np.array([*self.p2.get_state(), *self.p1.get_state()])
 
     # =======================================================
     # Reset
@@ -125,8 +133,8 @@ class BoxingEnv(gym.Env):
             pt.move(action)
             return not pt.get_rect().colliderect(p2.get_rect())
         
-        movement_learning_1 = -1
-        movement_learning_2 = -1
+        movement_learning_1 = -10
+        movement_learning_2 = -10
         
         if legit_movement(self.p1, self.p2, a1):
             self.p1.move(a1)
@@ -141,11 +149,16 @@ class BoxingEnv(gym.Env):
         # -------------------------------
         # Punch attempts
         # -------------------------------
+        stamina_penalty_1 = 0
+        stamina_penalty_2 = 0
+
         if a1 in [5, 6, 7]:
-            self.p1.start_punch(a1 - 5)
+            if self.p1.start_punch(a1 - 5) == -1:
+                stamina_penalty_1 -= 10
 
         if a2 in [5, 6, 7]:
-            self.p2.start_punch(a2 - 5)
+            if self.p2.start_punch(a2 - 5) == -1:
+                stamina_penalty_2 -= 10
 
         # -------------------------------
         # Punch update
@@ -162,21 +175,21 @@ class BoxingEnv(gym.Env):
                 if p2.state == 1: # combo reset
                     p2.cancel_punch()
                 p1.score += 1
-                return +10, -0.1 # penalizing to get hit
+                return +100, -0.5 # penalizing to get hit
             if p1.hitbox and not p1.hitbox.colliderect(p2.get_rect()):
-                return -0.1, 0.1 # penalizing missed punches  
+                return -0.5, 0 # penalizing missed punches  
             return 0, 0
         
         reward_p1, reward_p2 = hit_detection(self.p1, self.p2)
         t1, t2 = hit_detection(self.p2, self.p1)
-        reward_p1 += t1 + movement_learning_1
-        reward_p2 += t2 + movement_learning_2
+        reward_p1 += t1 + movement_learning_1 + stamina_penalty_1
+        reward_p2 += t2 + movement_learning_2 + stamina_penalty_2
 
         # -------------------------------
         # Regenerate stamina slowly
         # -------------------------------
         self.p1.regenerate()
-        self.p2.regenerate()
+        self.p2.regenerate() 
 
         # -------------------------------
         # Check ending

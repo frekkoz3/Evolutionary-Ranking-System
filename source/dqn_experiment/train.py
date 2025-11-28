@@ -17,24 +17,26 @@ from source.games.boxing.boxing import *
 from source.console import *
 from dqn_agent import *
 from tqdm import tqdm
+from source.individual import LogicalAIIndividual
 
 if __name__ == '__main__':
 
     render_mode = "non-human"
     env = BoxingEnv(render_mode)
     obs, _ = env.reset()
-    n_observations = len(obs) + 1 # the additional one is the player side one
+    n_observations = len(obs)
     n_actions = env.action_space.n
     p1 = DQNAgent(n_actions, n_observations)
-    p2 = DQNAgent(n_actions, n_observations)
-    n_games = 1500
+    p2 = LogicalAIIndividual()
+    n_games = 500
     for i in tqdm(range (n_games), desc="Games on going", unit="games"):
         p1.update_t = 0
-        p2.update_t = 0
         if i%2 == 0:
             play_boxing(players=[p1, p2], render_mode=render_mode)
         else:
             play_boxing(players=[p2, p1], render_mode=render_mode)
     render_mode = "human"
     env = BoxingEnv(render_mode)
-    play_boxing(players=[p1, p2], graphics=True)
+    play_boxing(players=[p1, p2], render_mode="human")
+    p1.save(path = "p1.pth")
+    p2.save()

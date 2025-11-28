@@ -10,8 +10,11 @@
         - play_boxing()
 """
 
-from individual import *
-from games.boxing.boxing import *
+from source.individual import *
+from source.games.boxing.boxing import *
+
+"""from individual import *
+from games.boxing.boxing import *"""
 
 def play_boxing(players = [RandomIndividual(), RandomIndividual()], render_mode = "human", **kwargs):
     """
@@ -21,6 +24,8 @@ def play_boxing(players = [RandomIndividual(), RandomIndividual()], render_mode 
     env = BoxingEnv(render_mode=render_mode)
 
     obs, info = env.reset()
+    obs_a = env.get_obs('p1')
+    obs_b = env.get_obs('p2')
 
     done = False
 
@@ -35,23 +40,23 @@ def play_boxing(players = [RandomIndividual(), RandomIndividual()], render_mode 
         if isinstance(players[0], RandomIndividual) or isinstance(players[0], RealIndividual):
             action_a = players[0].move(env)
         else:
-            action_a = players[0].move(np.append(obs, True), env) # The boolean flag represent if the player is the first or the second
+            action_a = players[0].move(np.array(obs_a), env) # The boolean flag represent if the player is the first or the second
         if isinstance(players[1], RandomIndividual) or isinstance(players[1], RealIndividual):
             action_b = players[1].move(env)
         else:
-            action_b = players[1].move(np.append(obs, False), env)
+            action_b = players[1].move(np.array(obs_b), env)
         
         new_obs, (r_a, r_b), done, truncated, info = env.step((action_a, action_b))
-
-        extra_a = np.array([1.0])   # for player A
-        extra_b = np.array([0.0])   # for player B
+        new_obs_a = env.get_obs('p1')
+        new_obs_b = env.get_obs('p2')
 
         # OBSERVE THE ENVIRONMENT
-        players[0].observe(np.concatenate([obs, extra_a]).astype(np.float32), action_a, r_a, np.concatenate([new_obs, extra_a]).astype(np.float32), done)
-        players[1].observe(np.concatenate([obs, extra_b]).astype(np.float32), action_b, r_b, np.concatenate([new_obs, extra_b]).astype(np.float32), done)
+        players[0].observe(np.array(obs_a).astype(np.float32), action_a, r_a, np.array(new_obs_a).astype(np.float32), done)
+        players[1].observe(np.array(obs_b).astype(np.float32), action_b, r_b, np.array(new_obs_b).astype(np.float32), done)
 
         # UPDATE THE OBSERVATION
-        obs = new_obs
+        obs_a = new_obs_a
+        obs_b = new_obs_b
 
         # UPDATE THE INDIVIDUALS
         players[0].update()
@@ -73,4 +78,4 @@ def play_boxing(players = [RandomIndividual(), RandomIndividual()], render_mode 
 
 if __name__ == '__main__':
 
-    play_boxing(players=[RealIndividual(), RandomIndividual()], render_mode="human")
+    play_boxing(players=[LogicalAIIndividual(), RandomIndividual()], render_mode="human")

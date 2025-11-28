@@ -6,6 +6,15 @@
 
     This file contains the implementation of an dqn agent.
 """
+import sys
+import os
+
+# Add the root of the project to Python path
+ROOT = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+sys.path.append(ROOT)
+
+from source.individual import Individual
+
 import math
 import random
 from collections import namedtuple, deque
@@ -15,7 +24,6 @@ import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
 
-from source.individual import Individual
 from replay_buffer import ReplayMemory
 
 class DQN(nn.Module):
@@ -151,3 +159,37 @@ class DQNAgent(Individual):
         self.optimizer.step()
 
         return loss.item()
+    
+    def save(self, path):
+        """Save the agent to a file."""
+        checkpoint = {
+            'elo' : self.elo,
+            'n_actions': self.n_actions,
+            'n_observations': self.n_observations,
+            'policy_state_dict': self.policy_net.state_dict(),
+            'target_state_dict': self.target_net.state_dict(),
+            'optimizer_state_dict': self.optimizer.state_dict(),
+            'steps_done': self.steps_done,
+        }
+
+        torch.save(checkpoint, path)
+
+    @classmethod
+    def load(cls, path, device='cpu'):
+        """Load an agent from a saved checkpoint."""
+        checkpoint = torch.load(path, map_location=device)
+
+        agent = cls(
+            n_actions=checkpoint['n_actions'],
+            n_observations=checkpoint['n_observations'],
+            init_elo=checkpoint['elo'],
+            device=device
+        )
+
+        agent.policy_net.load_state_dict(checkpoint['policy_state_dict'])
+        agent.target_net.load_state_dict(checkpoint['target_state_dict'])
+        agent.optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+        agent.steps_done = checkpoint['steps_done']
+
+        return agent
+

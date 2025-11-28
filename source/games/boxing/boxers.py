@@ -50,18 +50,42 @@ class Boxer:
             2: (12, 1, 12, 5),  # long punch
         }
 
+        # Storing last action
+        self.last_action = 0
+    
+    @classmethod
+    def state_dim():
+        return 8
+
+    def get_state(self):
+        """
+            x_center, y_center, punch_x_center, punch_y_center, state, stamina, last_action, side
+        """
+        px, py = -1, -1
+        if self.hitbox != None:
+            px, py = self.hitbox.center
+        x, y = self.get_rect().center
+
+        return x, y, px, py, self.state, self.stamina, self.last_action, self.size
+
     # ---------------------------------------------------------
     # Movement
     # ---------------------------------------------------------
     def move(self, action):
-        if action == 1:   # up
+        if action == 0: # idle
+            self.last_action = action
+        elif action == 1:   # up
             self.y -= self.speed
+            self.last_action = action
         elif action == 2: # down
             self.y += self.speed
+            self.last_action = action
         elif action == 3: # left
             self.x -= self.speed
+            self.last_action = action
         elif action == 4: # right
             self.x += self.speed
+            self.last_action = action
 
     # ---------------------------------------------------------
     # Start a punch
@@ -69,12 +93,14 @@ class Boxer:
     def start_punch(self, punch_type):
         if self.state != 0:
             return
+        
+        self.last_action = punch_type + 5 # punch_type + 5 = action
 
         startup, active, recovery, cost = self.PUNCHES[punch_type]
         if self.stamina < cost:
-            print("cannot punch")
-            return
-
+            self.last_action = 0
+            return -1
+        
         self.stamina -= cost
         self.state = 1
         self.timer = startup
