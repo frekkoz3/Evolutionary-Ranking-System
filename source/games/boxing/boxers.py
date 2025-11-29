@@ -45,28 +45,28 @@ class Boxer:
 
         # Punch definitions: (startup, active, recovery, stamina_cost)
         self.PUNCHES = {
-            0: (5, 1, 5, 15),     # short punch
-            1: (9, 1, 9, 10),  # mid punch
-            2: (12, 1, 12, 5),  # long punch
+            0: (5, 1, 5, 18),     # short punch
+            1: (9, 1, 9, 15),  # mid punch
+            2: (12, 1, 12, 10),  # long punch
         }
 
         # Storing last action
         self.last_action = 0
     
     @classmethod
-    def state_dim():
-        return 8
+    def state_dim(self):
+        return 10 # to tweak each time
 
     def get_state(self):
         """
-            x_center, y_center, punch_x_center, punch_y_center, state, stamina, last_action, side
+            x_center, y_center, punch_x_center, punch_y_center, state, stamina, last_action, half size, half punch size, score
         """
-        px, py = -1, -1
+        px, py = self.get_rect().center
         if self.hitbox != None:
             px, py = self.hitbox.center
         x, y = self.get_rect().center
 
-        return x, y, px, py, self.state, self.stamina, self.last_action, self.size
+        return x, y, px, py, self.state, self.stamina, self.last_action, self.size//2, self.size//4, self.score
 
     # ---------------------------------------------------------
     # Movement
@@ -186,7 +186,7 @@ class Boxer:
     # ---------------------------------------------------------
     def regenerate(self):
 
-        def stamina(x, min_value=0.05, max_value=0.2):
+        def stamina(x, min_value=0.05, max_value=0.1):
             """
             x: actual stamina level in [0, 100]
             min_value: output when x = 0

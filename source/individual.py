@@ -67,14 +67,15 @@ from itertools import count
 class LogicalAIIndividual:
     _ids = count(0)
 
-    def __init__(self, init_elo=100):
+    def __init__(self, init_elo=100, lev = 1):
         self.elo = init_elo
         self.id = next(LogicalAIIndividual._ids)
+        self.lev = lev
         self.n_matches = 0
 
         # Tuning thresholds (you can tweak them after testing)
-        self.short_range = 30
-        self.mid_range   = 70
+        self.short_range = 10
+        self.mid_range   = 30
         self.dodge_distance = 50
 
         # randomness
@@ -98,14 +99,25 @@ class LogicalAIIndividual:
     # -----------------------------------------------------------------
     # MOVE FUNCTION WITH SHORT / MID / LONG PUNCH LOGIC
     # -----------------------------------------------------------------
-    def move(self, state, env):
+    def move(self, env, perspective):
+        """
+            This is a simple yet effective bot. It has some level of difficulty tunable from 1 to 3.
+        """
         
-        self_xc, self_yc, self_px, self_py, self_state, self_stamina, self_last_action, self_side, opp_xc,  opp_yc,  opp_px,  opp_py,  opp_state,  opp_stamina, opp_last_action, opp_side = state
+        self_xc, self_yc, opp_xc, opp_yc, opp_state = env._get_logical_info(perspective)
+
+        if self.lev == 1:
+            return np.random.randint(0, 8)
+        
+        threshold = 0.05
+
+        if self.lev == 2:
+            threshold = 0.5
 
         # -----------------------
         # RANDOM MOVEMENT
         # -----------------------
-        if np.random.rand() < self.random_move_prob:
+        if np.random.rand() < threshold:
             return np.random.randint(0, 5)  # random movement (0–4)
 
         # -----------------------
@@ -155,7 +167,7 @@ class LogicalAIIndividual:
 
         # -----------------------
         # DEFAULT (should not happen)
-        # -----------------------
+        # -----------------------S
         return 0
 
 class RealIndividual(Individual):

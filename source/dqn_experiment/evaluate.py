@@ -20,8 +20,8 @@ from tqdm import tqdm
 from source.individual import LogicalAIIndividual
 
 if __name__ == '__main__':
-    
-    render_mode = "human"
-    p1 = DQNAgent.load('p1.pth')
-    p2 = LogicalAIIndividual()
-    play_boxing(players=[p1, p2], render_mode=render_mode, eval_mode = True)
+
+    p1_v, p2_v = 0, 0
+    p1 = DQNAgent.load(f"players/p1_{p1_v}.pth")
+    p2 = DQNAgent.load(f"players/p2_{p2_v}.pth")
+    play_boxing(players=[p1, p2], render_mode="human", eval_mode = True)

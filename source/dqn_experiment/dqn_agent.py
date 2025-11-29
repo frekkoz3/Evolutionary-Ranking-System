@@ -54,8 +54,8 @@ class DQN(nn.Module):
 BATCH_SIZE = 128
 GAMMA = 0.99
 EPS_START = 0.9
-EPS_END = 0.01
-EPS_DECAY = 2500
+EPS_END = 0.05
+EPS_DECAY = 60*120*600 # fps * maximum time * minimum number of game to learn
 TAU = 0.005
 LR = 3e-4
 REPLAY_SIZE = 10000
@@ -87,8 +87,7 @@ class DQNAgent(Individual):
         self.update_t = 0
 
     def reset(self):
-
-        self.steps_done = 0
+        self.steps_done -= max(0, 60*120*50) # just to reintroduce a bit of stochasticity
         self.update_t = 0
 
     def move(self, state, env):

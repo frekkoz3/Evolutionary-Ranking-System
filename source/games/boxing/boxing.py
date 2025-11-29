@@ -55,7 +55,7 @@ class BoxingEnv(gym.Env):
         self.observation_space = spaces.Box(
             low=-np.inf,
             high=np.inf,
-            shape=(2*8,),   # twice the size of a player
+            shape=(Boxer.state_dim()*2,),   # twice the size of a player
             dtype=np.float32
         )
         # ------------------------------------------------------
@@ -96,6 +96,15 @@ class BoxingEnv(gym.Env):
             return np.array([*self.p1.get_state(), *self.p2.get_state()])
         if perspective == 'p2':
             return np.array([*self.p2.get_state(), *self.p1.get_state()])
+        
+    def _get_logical_info(self, perspective):
+        """
+            This can be used only by the LogicalAIBot for training purpose only.
+        """
+        if perspective == 'p1':
+            return *self.p1.get_rect().center, *self.p2.get_rect().center, self.p2.state
+        else:
+            return *self.p2.get_rect().center, *self.p1.get_rect().center, self.p1.state
 
     # =======================================================
     # Reset
@@ -133,8 +142,8 @@ class BoxingEnv(gym.Env):
             pt.move(action)
             return not pt.get_rect().colliderect(p2.get_rect())
         
-        movement_learning_1 = -10
-        movement_learning_2 = -10
+        movement_learning_1 = -1
+        movement_learning_2 = -1
         
         if legit_movement(self.p1, self.p2, a1):
             self.p1.move(a1)
@@ -154,11 +163,11 @@ class BoxingEnv(gym.Env):
 
         if a1 in [5, 6, 7]:
             if self.p1.start_punch(a1 - 5) == -1:
-                stamina_penalty_1 -= 10
+                stamina_penalty_1 = -1
 
         if a2 in [5, 6, 7]:
             if self.p2.start_punch(a2 - 5) == -1:
-                stamina_penalty_2 -= 10
+                stamina_penalty_2 = -1
 
         # -------------------------------
         # Punch update
@@ -179,9 +188,9 @@ class BoxingEnv(gym.Env):
                 if p2.state == 1: # combo reset
                     p2.cancel_punch()
                 p1.score += 1
-                return +100, -0.5 # penalizing to get hit
+                return +10, -1 # penalizing to get hit
             if p1.hitbox and not p1.hitbox.colliderect(p2.get_rect()):
-                return -0.5, 0 # penalizing missed punches  
+                return -1, 0 # penalizing missed punches  
             return 0, 0
         
         reward_p1, reward_p2 = hit_detection(self.p1, self.p2)
@@ -203,9 +212,9 @@ class BoxingEnv(gym.Env):
             terminated = True
             if self.p1.score > self.p2.score:
                 reward_p1 = 100
-                reward_p2 = -10
+                reward_p2 = -100
             elif self.p2.score > self.p1.score:
-                reward_p1 = -10
+                reward_p1 = -100
                 reward_p2 = 100
             else:
                 reward_p1 = -1
@@ -220,9 +229,9 @@ class BoxingEnv(gym.Env):
         if self.time >= MAXIMUM_TIME * FPS // FRAME_DELAY:
             if self.p1.score > self.p2.score:
                 reward_p1 = 100
-                reward_p2 = -10
+                reward_p2 = -100
             elif self.p2.score > self.p1.score:
-                reward_p1 = -10
+                reward_p1 = -100
                 reward_p2 = 100
             else:
                 reward_p1 = -1
@@ -289,7 +298,7 @@ class BoxingEnv(gym.Env):
                 pygame.draw.rect(self.window, (255, 0, 0), boxer.hitbox, 2)
 
         # --------------------------------------------------
-        # Draw score / HUD
+        # Draw score
         # --------------------------------------------------
         font = pygame.font.SysFont("Arial", 28) #Font("./fonts/PressStart2P.ttf", 28) # to solve the path issues
         text_color = (255, 255, 255)
@@ -299,6 +308,22 @@ class BoxingEnv(gym.Env):
         self.window.blit(p1_score, (self.W//2 - 65, 10))
         self.window.blit(divider, (self.W//2 - 15, 10))
         self.window.blit(p2_score, (self.W//2 + 35, 10))
+
+        # ----------------------------------------------------
+        # Draw Stamina
+        # ----------------------------------------------------
+        def color_by_stamina(stamina):
+            if stamina > 50:
+                return (0, 255, 0)
+            elif stamina > 25:
+                return (255, 255, 0)
+            else:
+                return (255, 0, 0)
+        text_color = (255, 255, 0)
+        p1_score = font.render(f"{int(self.p1.stamina)}", True, color_by_stamina(self.p1.stamina))
+        p2_score = font.render(f"{int(self.p2.stamina)}", True, color_by_stamina(self.p2.stamina))
+        self.window.blit(p1_score, (25, 10))
+        self.window.blit(p2_score, (self.W - 60, 10))
 
         pygame.display.flip()
         self.clock.tick(FPS)

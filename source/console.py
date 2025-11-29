@@ -9,7 +9,6 @@
     Function list:
         - play_boxing()
 """
-
 from source.individual import *
 from source.games.boxing.boxing import *
 
@@ -40,10 +39,14 @@ def play_boxing(players = [RandomIndividual(), RandomIndividual()], render_mode 
 
         if isinstance(players[0], RandomIndividual) or isinstance(players[0], RealIndividual):
             action_a = players[0].move(env)
+        elif isinstance(players[0], LogicalAIIndividual):
+            action_a = players[0].move(env, 'p1')
         else:
-            action_a = players[0].move(np.array(obs_a), env) # The boolean flag represent if the player is the first or the second
+            action_a = players[0].move(np.array(obs_a), env)
         if isinstance(players[1], RandomIndividual) or isinstance(players[1], RealIndividual):
             action_b = players[1].move(env)
+        elif isinstance(players[1], LogicalAIIndividual):
+            action_b = players[1].move(env, 'p2')
         else:
             action_b = players[1].move(np.array(obs_b), env)
         
@@ -83,4 +86,4 @@ def play_boxing(players = [RandomIndividual(), RandomIndividual()], render_mode 
 
 if __name__ == '__main__':
 
-    play_boxing(players=[RealIndividual(), RandomIndividual()], render_mode="human")
+    play_boxing(players=[RealIndividual(), LogicalAIIndividual(lev = 3)], render_mode="human")

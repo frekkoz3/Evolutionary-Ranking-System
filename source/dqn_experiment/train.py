@@ -33,10 +33,9 @@ if __name__ == '__main__':
     # --------------------------------------
     # Main loop
     # --------------------------------------
-    number_of_iterations = 3
+    number_of_iterations = 20
     for j in range (number_of_iterations):
-        n_games = 500
-        render_mode = "non-human"
+        n_games = 150
         # --------------------------------------
         # Single checkpoint
         # --------------------------------------
@@ -49,10 +48,9 @@ if __name__ == '__main__':
                 play_boxing(players=[p1, p2], render_mode=render_mode, eval_mode= False)
             else:
                 play_boxing(players=[p2, p1], render_mode=render_mode, eval_mode= False)
-        render_mode = "human"
-        play_boxing(players=[p1, p2], render_mode="human", eval_mode=True)
+        # play_boxing(players=[p1, p2], render_mode="human", eval_mode=True)
         # --------------------------------------
         # Checkpoints saving
         # --------------------------------------
-        p1.save(path = f"p1_{j}.pth")
-        p2.save(path = f"p2_{j}.pth")
+        p1.save(path = f"players/p1_{j}.pth")
+        p2.save(path = f"players/p2_{j}.pth")
