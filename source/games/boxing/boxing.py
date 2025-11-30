@@ -153,15 +153,11 @@ class BoxingEnv(gym.Env):
             pt.move(action)
             return not pt.get_rect().colliderect(p2.get_rect()) and self.RING.contains(pt.get_rect())
         
-        mov_penalty_1, mov_penalty_2 = -1, -1
-
         if legit_movement(self.p1, self.p2, a1):
             self.p1.move(a1)
-            mov_penalty_1 = 0
 
         if legit_movement(self.p2, self.p1, a2):
             self.p2.move(a2)
-            mov_penalty_2 = 0
 
         self._clamp_in_ring(self.p1)
         self._clamp_in_ring(self.p2)
@@ -249,13 +245,13 @@ class BoxingEnv(gym.Env):
         # -----------------------------------
         # Attraction between players
         # -----------------------------------
-        """if abs(self.p1.x - self.p2.x) > self.RING_W // 4:
+        if abs(self.p1.x - self.p2.x) > self.RING_W // 4:
             reward_p1 += -1
             reward_p2 += -1
         if abs(self.p1.y - self.p2.y) > self.p1.size // 2:
             reward_p1 += -1
             reward_p2 += -1
-        # -----------------------------------
+        """# -----------------------------------
         # Illegal movement penalty
         # -----------------------------------
         reward_p1 += mov_penalty_1

@@ -25,16 +25,16 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
     # Add arguments
-    parser.add_argument("--c1", type=int, default=48, help="player 1 checkpoint")
-    parser.add_argument("--c2", type=int, default=48, help="player 2 checkpoint")
+    parser.add_argument("--c1", type=int, default=1, help="player 1 checkpoint")
+    parser.add_argument("--c2", type=int, default=1, help="player 2 checkpoint")
     parser.add_argument("--human", type = bool, default=False, help="if testing p1 versus an human")
     # Parse
     args = parser.parse_args()
 
     p1_v, p2_v = args.c1, args.c2
     human = args.human
-    p1 = DQNAgent.load(f"players/p1_{p1_v}.pth")
-    p2 = DQNAgent.load(f"players/p2_{p2_v}.pth")
+    p1 = DQNAgent.load(f"players/p1_v2_{p1_v}.pth")
+    p2 = DQNAgent.load(f"players/p2_v2_{p2_v}.pth")
     p3 = RealIndividual()
     if human:
         play_boxing(players=[p1, p3], render_mode="human", eval_mode = True)
