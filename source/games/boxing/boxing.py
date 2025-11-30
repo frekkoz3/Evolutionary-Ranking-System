@@ -77,6 +77,17 @@ class BoxingEnv(gym.Env):
         self.RING_RIGHT = self.W - 20
         self.RING_BOTTOM = self.H - 20
 
+        self.RING = pygame.Rect(
+                self.RING_LEFT,
+                self.RING_TOP,
+                (self.RING_RIGHT - self.RING_LEFT),
+                (self.RING_BOTTOM - self.RING_TOP)
+            )
+
+        # Ring dimension
+        self.RING_W = self.W - self.RING_LEFT*2
+        self.RING_H = self.H - self.RING_TOP - self.HUD_HEIGHT
+
         # Timer
         self.time = 0
 
@@ -136,21 +147,21 @@ class BoxingEnv(gym.Env):
         def legit_movement(p1 : Boxer, p2 : Boxer, action):
             """
                 This function simulate the movement one step ahead in the future. 
-                If a player collaps over an other player it return False, meaning the action is invalid.
+                If a player collaps over an other player or if it exit from the ring it return False, meaning the action is invalid.
             """
             pt = Boxer(p1.x, p1.y, p1.color, name="temp")
             pt.move(action)
-            return not pt.get_rect().colliderect(p2.get_rect())
+            return not pt.get_rect().colliderect(p2.get_rect()) and self.RING.contains(pt.get_rect())
         
-        movement_learning_1 = -1
-        movement_learning_2 = -1
-        
+        mov_penalty_1, mov_penalty_2 = -1, -1
+
         if legit_movement(self.p1, self.p2, a1):
             self.p1.move(a1)
-            movement_learning_1 = 0
+            mov_penalty_1 = 0
+
         if legit_movement(self.p2, self.p1, a2):
             self.p2.move(a2)
-            movement_learning_2 = 0
+            mov_penalty_2 = 0
 
         self._clamp_in_ring(self.p1)
         self._clamp_in_ring(self.p2)
@@ -158,17 +169,13 @@ class BoxingEnv(gym.Env):
         # -------------------------------
         # Punch attempts
         # -------------------------------
-        stamina_penalty_1 = 0
-        stamina_penalty_2 = 0
 
         if a1 in [5, 6, 7]:
-            if self.p1.start_punch(a1 - 5) == -1:
-                stamina_penalty_1 = -1
-
+            err1 = self.p1.start_punch(a1 - 5)
+                
         if a2 in [5, 6, 7]:
-            if self.p2.start_punch(a2 - 5) == -1:
-                stamina_penalty_2 = -1
-
+            err2 = self.p2.start_punch(a2 - 5)
+                
         # -------------------------------
         # Punch update
         # -------------------------------
@@ -188,15 +195,15 @@ class BoxingEnv(gym.Env):
                 if p2.state == 1: # combo reset
                     p2.cancel_punch()
                 p1.score += 1
-                return +10, -1 # penalizing to get hit
+                return +100, -10
             if p1.hitbox and not p1.hitbox.colliderect(p2.get_rect()):
-                return -1, 0 # penalizing missed punches  
+                return -10, +10 # penalizing missed punches  
             return 0, 0
         
         reward_p1, reward_p2 = hit_detection(self.p1, self.p2)
         t1, t2 = hit_detection(self.p2, self.p1)
-        reward_p1 += t1 + movement_learning_1 + stamina_penalty_1
-        reward_p2 += t2 + movement_learning_2 + stamina_penalty_2
+        reward_p1 += t1 
+        reward_p2 += t2
 
         # -------------------------------
         # Regenerate stamina slowly
@@ -207,7 +214,7 @@ class BoxingEnv(gym.Env):
         # -------------------------------
         # Check ending
         # -------------------------------
-        terminated = False # to add the truncation for the time
+        terminated, truncated = False, False
         if self.p1.score >= 100 or self.p2.score >= 100:
             terminated = True
             if self.p1.score > self.p2.score:
@@ -220,26 +227,52 @@ class BoxingEnv(gym.Env):
                 reward_p1 = -1
                 reward_p2 = -1
         
-        reward = (reward_p1, reward_p2)
-
         # --------------------------------
         # Time update
         # --------------------------------
         self.time += 1
         if self.time >= MAXIMUM_TIME * FPS // FRAME_DELAY:
+            terminated = True
+            truncated = True
             if self.p1.score > self.p2.score:
-                reward_p1 = 100
-                reward_p2 = -100
+                reward_p1 = 1000
+                reward_p2 = -1000
             elif self.p2.score > self.p1.score:
-                reward_p1 = -100
-                reward_p2 = 100
+                reward_p1 = -1000
+                reward_p2 = 1000
             else:
-                reward_p1 = -1
-                reward_p2 = -1
-            reward = (reward_p1, reward_p2)
-            return self.get_obs(), reward, True, True, {} 
+                reward_p1 = -(1000 - self.p1.score)
+                reward_p2 = -(1000 - self.p2.score)
+
+        # -----------------------------------
+        # Reward shaping
+        # -----------------------------------
+        # Attraction between players
+        # -----------------------------------
+        """if abs(self.p1.x - self.p2.x) > self.RING_W // 4:
+            reward_p1 += -1
+            reward_p2 += -1
+        if abs(self.p1.y - self.p2.y) > self.p1.size // 2:
+            reward_p1 += -1
+            reward_p2 += -1
+        # -----------------------------------
+        # Illegal movement penalty
+        # -----------------------------------
+        reward_p1 += mov_penalty_1
+        reward_p2 += mov_penalty_2
+        # -----------------------------------
+        # Stamina reward (fixing 50 as good threshold)
+        # -----------------------------------
+        reward_p1 += ((self.p1.stamina - self.p1.max_stamina//2))
+        reward_p2 += ((self.p2.stamina - self.p2.max_stamina//2))
+        # ------------------------------------
+        # Reward for having an higher score
+        # -----------------------------------
+        reward_p1 += (self.p1.score - self.p2.score)/100
+        reward_p2 += (self.p2.score - self.p1.score)/100"""
+        reward = (reward_p1, reward_p2)
         
-        return self.get_obs(), reward, terminated, False, {}
+        return self.get_obs(), reward, terminated, truncated, {}
 
     # =======================================================
     # Clamp player in the ring area

@@ -58,7 +58,7 @@ EPS_END = 0.05
 EPS_DECAY = 60*120*600 # fps * maximum time * minimum number of game to learn
 TAU = 0.005
 LR = 3e-4
-REPLAY_SIZE = 10000
+REPLAY_SIZE = 60*60 # first 60 seconds of a game
 
 Transition = namedtuple('Transition',
                         ('state', 'action', 'reward', 'next_state', 'done'))
@@ -86,15 +86,18 @@ class DQNAgent(Individual):
 
         self.update_t = 0
 
-    def reset(self):
-        self.steps_done -= max(0, 60*120*50) # just to reintroduce a bit of stochasticity
+    def reset(self, percentage = None):
+        if percentage == None:
+            self.steps_done -= max(0, 60*120*50) # just to reintroduce a bit of stochasticity
+        else:
+            self.steps_done = int(self.steps_done*percentage)
         self.update_t = 0
 
     def move(self, state, env):
         state = torch.tensor(state, dtype=torch.float32, device=self.device)
         sample = random.random()
-        eps_threshold = EPS_END + (EPS_START - EPS_END) * \
-            math.exp(-1. * self.steps_done / EPS_DECAY)
+        eps_threshold = EPS_START - (EPS_START - EPS_END) * (self.steps_done / EPS_DECAY)
+        eps_threshold = max(EPS_END, eps_threshold)  # clamp so it doesn't go below end
         self.steps_done += 1
         if sample > eps_threshold:
             with torch.no_grad():
