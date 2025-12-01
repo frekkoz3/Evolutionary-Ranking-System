@@ -24,7 +24,7 @@ import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
 
-from replay_buffer import ReplayMemory
+from source.dqn_agent.replay_buffer import ReplayMemory
 
 class DQN(nn.Module):
 
@@ -181,19 +181,6 @@ class DQNAgent(Individual):
 
         torch.save(checkpoint, path)
 
-    def mutate(self, policy_scale = 0.1, target_scale = 0.1):
-        """
-            This method should be used only by loaded individuals this is why the self.id is setted
-        """
-        self.id =  next(Individual._ids)
-        def perturb_model(model, scale=0.01):
-            with torch.no_grad():            # avoid tracking in autograd
-                for p in model.parameters():
-                    p.add_(torch.randn_like(p) * scale)
-        perturb_model(self.policy_net, scale=policy_scale)
-        perturb_model(self.target_net, scale=target_scale)
-        self.reset(percentage=0.75)
-
     @classmethod
     def load(cls, path, device='cpu'):
         """Load an agent from a saved checkpoint."""
@@ -213,3 +200,15 @@ class DQNAgent(Individual):
 
         return agent
 
+    def mutate(self, policy_scale = 0.1, target_scale = 0.1):
+        """
+            This method should be used only by loaded individuals this is why the self.id is setted
+        """
+        self.id =  next(Individual._ids)
+        def perturb_model(model, scale=0.01):
+            with torch.no_grad():            # avoid tracking in autograd
+                for p in model.parameters():
+                    p.add_(torch.randn_like(p) * scale)
+        perturb_model(self.policy_net, scale=policy_scale)
+        perturb_model(self.target_net, scale=target_scale)
+        self.reset(percentage=0.75)

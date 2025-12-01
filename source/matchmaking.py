@@ -9,6 +9,7 @@
         - matches(individuals)
 """
 from individual import *
+import random
 
 def matches(individuals):
     """
@@ -16,9 +17,7 @@ def matches(individuals):
         In this moment is just a random shuffle.
         This function returns a list of tuples, each of them containing two individuals.
     """
-
-    idxs = [i for i in range (len(individuals))]
-    random.shuffle(idxs)
+    idxs = sorted(range(len(individuals)), key=lambda i: individuals[i].elo)
     return [(individuals[idxs[i]], individuals[idxs[i+1]]) for i in range (0, len(idxs), 2)]
 
 if __name__ == '__main__':
