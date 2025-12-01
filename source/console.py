@@ -9,11 +9,11 @@
     Function list:
         - play_boxing()
 """
-"""from source.individual import *
-from source.games.boxing.boxing import *"""
+from source.individual import *
+from source.games.boxing.boxing import *
 
-from individual import *
-from games.boxing.boxing import *
+"""from individual import *
+from games.boxing.boxing import *"""
 
 def play_boxing(players = [RandomIndividual(), RandomIndividual()], render_mode = "human", eval_mode = True, **kwargs):
     """

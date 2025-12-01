@@ -16,7 +16,7 @@ sys.path.append(ROOT)
 from elo_system import play
 from console import play_boxing
 from dqn_agent.dqn_agent import DQNAgent
-
+from games.boxing.boxing import BoxingEnv
 if __name__ == '__main__':
     
-    play(player_class=DQNAgent, play_fun=play_boxing)
+    play(player_class=DQNAgent, play_fun=play_boxing, **{"env" : BoxingEnv(render_mode="non-human")})

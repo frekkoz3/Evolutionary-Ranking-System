@@ -78,7 +78,7 @@ def round(players : list[ind.Individual], matchmaking_fun, play_fun, render_mode
         p1.update_elo(p2.get_id(), x)
         p2.update_elo(p1.get_id(), y)
 
-def play(player_class = ind.RandomIndividual, matchmaking_fun = mmk.matches, play_fun = cns.play_boxing, parallel = True, eval_mode = False, **kwargs):
+def play(player_class = ind.RandomIndividual, matchmaking_fun = mmk.matches, play_fun = cns.play_boxing, parallel = False, eval_mode = False, **kwargs):
     """
         This function should provides the complete wrapper for everything.
         It should be configurable from a json or something like this.
@@ -93,12 +93,19 @@ def play(player_class = ind.RandomIndividual, matchmaking_fun = mmk.matches, pla
 
     n = 40 # number of individuals. please keep it a multiple of 2 for now
 
-    if player_class == DQNAgent:
+    """if player_class == DQNAgent:
         players = [DQNAgent.load("individuals/individual1.pth") if np.random.random() > 0.5 else DQNAgent.load("individuals/individual2.pth") for _ in range(n)]
         for i in range (len(players)):
             players[i].mutate()
     else:
+        players = [player_class() for _ in range (n)]"""
+    
+    if player_class == DQNAgent:
+        env = kwargs["env"]
+        players = [player_class(n_actions = env.action_space.n, n_observations = env.observation_space.shape[0]) for _ in range (n)]
+    else:
         players = [player_class() for _ in range (n)]
+
 
     number_of_rounds = 200
 
@@ -122,7 +129,19 @@ def play(player_class = ind.RandomIndividual, matchmaking_fun = mmk.matches, pla
     # --- END ---
     print("It has been a pleasure, bye!")
 
-    
+def show_results(path = "individuals/", starting_index = 0, number_of_individuals = 40):
+    """
+        This function simply show the final elo of all the individuals.
+    """
+    elos = []
+    for n in range(starting_index, starting_index + number_of_individuals):
+        t = DQNAgent.load(f"{path}individual{n}.pth")
+        elos.append(t.elo)
+        print(f"Individual {t.id}:\n ELO reached : {t.elo}")
+    from matplotlib import pyplot as plt
+    plt.hist(elos, bins = 10)
+    plt.title("ELO histogram")
+    plt.show() 
     
 if __name__ == '__main__':
 
@@ -131,4 +150,4 @@ if __name__ == '__main__':
     # poison_position = [-1, -1] # position of the poisoned block on the chomp board. [-1, -1] = random
     
     # kwargs = { "rows" : rows, "cols" : cols, "poison_position" : poison_position}
-    pass
+    show_results()
