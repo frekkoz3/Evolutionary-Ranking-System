@@ -2,9 +2,9 @@
     Final Project for the "Optimization for AI" course.
     Developer : Bredariol Francesco
 
-    evaluate.py
+    perturbation.py
 
-    This file contains the evaluation side for the dqn agent.
+    This file contains an experiment for the mutation of an agent.
 """
 import sys
 import os
@@ -21,6 +21,12 @@ from source.individual import LogicalAIIndividual, RealIndividual
 
 import argparse
 
+
+def perturb_model(model, scale=0.01):
+    with torch.no_grad():            # avoid tracking in autograd
+        for p in model.parameters():
+            p.add_(torch.randn_like(p) * scale)
+
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
@@ -34,7 +40,9 @@ if __name__ == '__main__':
     p1_v, p2_v = args.c1, args.c2
     human = args.human
     p1 = DQNAgent.load(f"players/p1_v4_{p1_v}.pth")
-    p2 = DQNAgent.load(f"players/p2_v4_{p2_v}.pth")
+    p2 = DQNAgent.load(f"players/p1_v4_{p1_v}.pth")
+    perturb_model(p2.policy_net, scale = 0.1)
+    perturb_model(p2.target_net, scale=0.1)
     p3 = RealIndividual()
     if human:
         play_boxing(players=[p1, p3], render_mode="human", eval_mode = True)

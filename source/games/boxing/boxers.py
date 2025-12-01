@@ -56,22 +56,18 @@ class Boxer:
     
     @classmethod
     def state_dim(self):
-        return 11 # to tweak each time
+        return 24 # to tweak each time
 
     def get_state(self):
         """
-            x, y, px, py, self.state, self.stamina, self.is_punching, self.last_action, self.size//2, self.size//4, self.score
+            x, y, px, py, self.state, self.stamina, *punches_details, self.is_punching, self.last_action, self.size//2, self.size//4, self.score
         """
         px, py = self.get_rect().center
         if self.hitbox != None:
             px, py = self.hitbox.center
         x, y = self.get_rect().center
 
-        can_punch = 0
-        if self.stamina > 10:
-            can_punch = 1
-
-        return x, y, px, py, self.state, self.stamina,  self.is_punching, self.last_action, self.size//2, self.size//4, self.score
+        return x, y, px, py, self.state, self.stamina, self.stamina_reg_lev(self.stamina), *self.PUNCHES[0], *self.PUNCHES[1], *self.PUNCHES[2], self.is_punching, self.last_action, self.size//2, self.size//4, self.score
 
     # ---------------------------------------------------------
     # Movement
@@ -188,9 +184,7 @@ class Boxer:
     # ---------------------------------------------------------
     # Regenerate stamina slowly using a sigmoid update based on the current level of stamina
     # ---------------------------------------------------------
-    def regenerate(self):
-
-        def stamina(x, min_value=0.05, max_value=0.1):
+    def stamina_reg_lev(self, x, min_value=0.05, max_value=0.1):
             """
             x: actual stamina level in [0, 100]
             min_value: output when x = 0
@@ -207,8 +201,12 @@ class Boxer:
 
             # Scale to [min_value, max_value]
             return min_value + normalized * (max_value - min_value)
+    
+    def regenerate(self):
+
         
-        self.stamina = min(self.max_stamina, self.stamina + stamina(self.stamina))
+        
+        self.stamina = min(self.max_stamina, self.stamina + self.stamina_reg_lev(self.stamina))
 
     def __str__(self):
         s = f"{self.name}\n------\npos ({self.x}, {self.y})\nscore : {self.score}\nstamina : {self.stamina}\nstate : {self.state}\n------\n"

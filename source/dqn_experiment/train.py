@@ -26,21 +26,22 @@ if __name__ == '__main__':
     render_mode = "non-human"
     env = BoxingEnv(render_mode)
     obs, _ = env.reset()
+    
     n_observations = env.observation_space.shape[0]
     n_actions = env.action_space.n
-    checkpoint_index = 0
-    """p1 = DQNAgent.load(f"players/p1_{checkpoint_index}.pth")#(n_actions, n_observations)
-    p2 = DQNAgent.load(f"players/p2_{checkpoint_index}.pth")#(n_actions, n_observations)
+    checkpoint_index = 4
+    p1 = DQNAgent.load(f"players/p1_v4_{checkpoint_index}.pth")#(n_actions, n_observations)
+    p2 = DQNAgent.load(f"players/p2_v4_{checkpoint_index}.pth")#(n_actions, n_observations)
     p1.reset(percentage = 0.25)
-    p2.reset(percentage = 0.25)"""
-    p1 = DQNAgent(n_actions, n_observations)
-    p2 = DQNAgent(n_actions, n_observations)
+    p2.reset(percentage = 0.25)
+    """p1 = DQNAgent(n_actions, n_observations)
+    p2 = DQNAgent(n_actions, n_observations)"""
     # --------------------------------------
     # Main loop
     # --------------------------------------
     number_of_iterations = 20
     for i in range (number_of_iterations):
-        n_games = 150
+        n_games = 200
         # --------------------------------------
         # Single checkpoint
         # --------------------------------------
@@ -56,5 +57,5 @@ if __name__ == '__main__':
         # --------------------------------------
         # Checkpoints saving
         # --------------------------------------
-        p1.save(path = f"players/p1_v2_{checkpoint_index + 1 + i}.pth")
-        p2.save(path = f"players/p2_v2_{checkpoint_index + 1 + i}.pth")
+        p1.save(path = f"players/p1_v4_{checkpoint_index + 1 + i}.pth")
+        p2.save(path = f"players/p2_v4_{checkpoint_index + 1 + i}.pth")

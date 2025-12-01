@@ -30,10 +30,10 @@ class DQN(nn.Module):
 
     def __init__(self, n_observations, n_actions):
         super(DQN, self).__init__()
-        self.layer1 = nn.Linear(n_observations, 128)
-        self.layer2 = nn.Linear(128, 128)
-        self.layer3 = nn.Linear(128, 128)
-        self.layer4 = nn.Linear(128, n_actions)
+        self.layer1 = nn.Linear(n_observations, 256)
+        self.layer2 = nn.Linear(256, 128)
+        self.layer3 = nn.Linear(128, 64)
+        self.layer4 = nn.Linear(64, n_actions)
 
     # Called with either one element to determine next action, or a batch
     # during optimization.
@@ -41,7 +41,7 @@ class DQN(nn.Module):
         x = F.relu(self.layer1(x))
         x = F.relu(self.layer2(x))
         x = F.relu(self.layer3(x))
-        return self.layer3(x)
+        return self.layer4(x)
     
 # BATCH_SIZE is the number of transitions sampled from the replay buffer
 # GAMMA is the discount factor
