@@ -24,6 +24,7 @@ class Individual():
     _ids = count(0)
 
     def __init__(self, init_elo = 100):
+        self.init_elo = init_elo
         self.elo = init_elo
         self.id =  next(Individual._ids)
         self.n_matches = 0
@@ -41,6 +42,9 @@ class Individual():
         self.elo_history.append(self.elo)"""
         self.elo = max(new_elo, 0)
         self.n_matches += 1
+    
+    def reset_elo(self):
+        self.elo = self.init_elo
 
     def overwrite(self, other):
         self.__dict__ = copy.deepcopy(other.__dict__)

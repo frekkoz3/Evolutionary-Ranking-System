@@ -89,23 +89,22 @@ def play(player_class = ind.RandomIndividual, matchmaking_fun = mmk.matches, pla
     # lam, k, n, players, number_of_matches, kwargs = config() 
     
     lam = 400 # lambda for the probability of winning
-    k = 40 # k for the constant in the elo update
+    k = 20 # k for the constant in the elo update
 
     n = 40 # number of individuals. please keep it a multiple of 2 for now
-
-    """if player_class == DQNAgent:
+    """
+    if player_class == DQNAgent:
         players = [DQNAgent.load("individuals/individual1.pth") if np.random.random() > 0.5 else DQNAgent.load("individuals/individual2.pth") for _ in range(n)]
         for i in range (len(players)):
             players[i].mutate()
     else:
-        players = [player_class() for _ in range (n)]"""
-    
+        players = [player_class() for _ in range (n)]
+    """
     if player_class == DQNAgent:
         env = kwargs["env"]
         players = [player_class(n_actions = env.action_space.n, n_observations = env.observation_space.shape[0]) for _ in range (n)]
     else:
         players = [player_class() for _ in range (n)]
-
 
     number_of_rounds = 200
 

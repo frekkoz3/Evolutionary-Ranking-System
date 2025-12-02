@@ -29,13 +29,13 @@ if __name__ == '__main__':
     
     n_observations = env.observation_space.shape[0]
     n_actions = env.action_space.n
-    checkpoint_index = 4
-    p1 = DQNAgent.load(f"players/p1_v4_{checkpoint_index}.pth")#(n_actions, n_observations)
+    checkpoint_index = 0
+    """p1 = DQNAgent.load(f"players/p1_v4_{checkpoint_index}.pth")#(n_actions, n_observations)
     p2 = DQNAgent.load(f"players/p2_v4_{checkpoint_index}.pth")#(n_actions, n_observations)
     p1.reset(percentage = 0.25)
-    p2.reset(percentage = 0.25)
-    """p1 = DQNAgent(n_actions, n_observations)
-    p2 = DQNAgent(n_actions, n_observations)"""
+    p2.reset(percentage = 0.25)"""
+    p1 = DQNAgent(n_actions, n_observations)
+    p2 = DQNAgent(n_actions, n_observations)
     # --------------------------------------
     # Main loop
     # --------------------------------------

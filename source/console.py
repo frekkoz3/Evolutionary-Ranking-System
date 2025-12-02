@@ -75,11 +75,14 @@ def play_boxing(players = [RandomIndividual(), RandomIndividual()], render_mode 
         if done or truncated:
             if env.p1.score > env.p2.score:
                 env.close()
+                #print(f"player {players[0].id} WON against player {players[1].id}. Final score: {env.p1.score} - {env.p2.score}")
                 return (1, 0)
             elif env.p2.score > env.p1.score:
                 env.close()
+                #print(f"player {players[1].id} WON against player {players[0].id}. Final score: {env.p1.score} - {env.p2.score}")
                 return (0, 1)
             env.close()
+            #print(f"player {players[1].id} and player {players[0].id} went EVEN. Final score: {env.p1.score} - {env.p2.score}")
             return (0, 0)
         
     env.close()

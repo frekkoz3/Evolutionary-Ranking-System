@@ -12,6 +12,7 @@
 """
 import pygame 
 import math
+import numpy as np
 
 SIZE = 40
 SPEED = 5
@@ -56,24 +57,25 @@ class Boxer:
     
     @classmethod
     def state_dim(self):
-        return 24 # to tweak each time
+        return 27 # to tweak each time
 
     def get_state(self):
         """
-            x, y, px, py, self.state, self.stamina, *punches_details, self.is_punching, self.last_action, self.size//2, self.size//4, self.score
+            x, y, px, py, self.state, self.timer, self.stamina, self.speed, self.stamina_reg_lev(self.stamina), *(np.array(self.PUNCHES[0])*temp), *(np.array(self.PUNCHES[1])*temp), *(np.array(self.PUNCHES[2])*temp), self.is_punching, self.last_action, self.size//2, self.size//4, self.score
         """
         px, py = self.get_rect().center
         if self.hitbox != None:
             px, py = self.hitbox.center
         x, y = self.get_rect().center
-
-        return x, y, px, py, self.state, self.stamina, self.stamina_reg_lev(self.stamina), *self.PUNCHES[0], *self.PUNCHES[1], *self.PUNCHES[2], self.is_punching, self.last_action, self.size//2, self.size//4, self.score
+        temp = np.array(self.punches_stamina_penalty())
+        return x, y, px, py, self.state, self.timer, self.stamina, self.speed, self.stamina_reg_lev(self.stamina), *(np.array(self.PUNCHES[0])*temp), *(np.array(self.PUNCHES[1])*temp), *(np.array(self.PUNCHES[2])*temp), self.is_punching, self.last_action, self.size//2, self.size//4, self.score
 
     # ---------------------------------------------------------
     # Movement
     # ---------------------------------------------------------
     def move(self, action):
         self.last_action = action
+        self.speed = SPEED * self.stamina_reg_lev(min_value=0.2, max_value=1)
         if action == 0: # idle
             pass
         if action == 1:   # up
@@ -88,11 +90,17 @@ class Boxer:
     # ---------------------------------------------------------
     # Start a punch
     # ---------------------------------------------------------
+
+    def punches_stamina_penalty(self):
+            q = 2
+            m = - 1/100
+            y = self.stamina * m + q
+            return (y, 1, 1, y)
+    
     def start_punch(self, punch_type):
         if self.state != 0:
             return
-        
-        startup, active, recovery, cost = self.PUNCHES[punch_type]
+        startup, active, recovery, cost = tuple(np.array(self.PUNCHES[punch_type])*np.array(self.punches_stamina_penalty())) # we must multiply it by some penalty driven by the stamina level
         if self.stamina < cost:
             self.last_action = 0
             return -1
@@ -101,7 +109,7 @@ class Boxer:
         
         self.stamina -= cost
         self.state = 1
-        self.timer = startup
+        self.timer = int(startup)
         self.punch_type = punch_type
         self.hitbox = None
 
@@ -114,9 +122,10 @@ class Boxer:
 
         self.timer -= 1
 
+        _, active, recovery, _ = tuple(np.array(self.PUNCHES[self.punch_type])*self.punches_stamina_penalty())
+
         if self.state == 1 and self.timer <= 0:
             # startup → active
-            _, active, _, _ = self.PUNCHES[self.punch_type]
             self.state = 2
             self.timer = active
 
@@ -125,9 +134,8 @@ class Boxer:
 
         elif self.state == 2 and self.timer <= 0:
             # active → recovery
-            _, _, recovery, _ = self.PUNCHES[self.punch_type]
             self.state = 3
-            self.timer = recovery
+            self.timer = int(recovery)
             self.hitbox = None
 
         elif self.state == 3 and self.timer <= 0:
@@ -170,6 +178,7 @@ class Boxer:
     # ---------------------------------------------------------
     def cancel_punch(self):
         self.state = 0
+        self.timer = 0
         self.is_punching = 0
         self.punch_type = None
         self.hitbox = None
@@ -184,15 +193,16 @@ class Boxer:
     # ---------------------------------------------------------
     # Regenerate stamina slowly using a sigmoid update based on the current level of stamina
     # ---------------------------------------------------------
-    def stamina_reg_lev(self, x, min_value=0.05, max_value=0.1):
+    def stamina_reg_lev(self, min_value=0.05, max_value=0.1):
             """
             x: actual stamina level in [0, 100]
             min_value: output when x = 0
             max_value: output when x = 100
             """
+            
             # Standard sigmoid centered at 50 with steepness k
             k = 0.1
-            sigmoid = 1 / (1 + math.exp(-k * (x - 50)))
+            sigmoid = 1 / (1 + math.exp(-k * (self.stamina - 50)))
 
             # Normalize sig in [0,1] using its values at x=0 and x=100
             sig0 = 1 / (1 + math.exp(-k * (0 - 50)))
@@ -204,9 +214,7 @@ class Boxer:
     
     def regenerate(self):
 
-        
-        
-        self.stamina = min(self.max_stamina, self.stamina + self.stamina_reg_lev(self.stamina))
+        self.stamina = min(self.max_stamina, self.stamina + self.stamina_reg_lev())
 
     def __str__(self):
         s = f"{self.name}\n------\npos ({self.x}, {self.y})\nscore : {self.score}\nstamina : {self.stamina}\nstate : {self.state}\n------\n"

@@ -204,11 +204,12 @@ class DQNAgent(Individual):
         """
             This method should be used only by loaded individuals this is why the self.id is setted
         """
-        self.id =  next(Individual._ids)
+        self.id = next(DQNAgent._ids)
         def perturb_model(model, scale=0.01):
             with torch.no_grad():            # avoid tracking in autograd
                 for p in model.parameters():
                     p.add_(torch.randn_like(p) * scale)
         perturb_model(self.policy_net, scale=policy_scale)
         perturb_model(self.target_net, scale=target_scale)
+        self.reset_elo()
         self.reset(percentage=0.75)

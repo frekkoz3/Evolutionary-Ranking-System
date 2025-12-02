@@ -101,16 +101,15 @@ class BoxingEnv(gym.Env):
         """
         assert perspective == None or perspective == 'p1' or perspective == 'p2'
 
-        TIME_MAGNITUDE = 10 # This should provide a way to stretch the time in order to prevent too much sensibility of its relative wights
         TIME_CAP = MAXIMUM_TIME * FPS // FRAME_DELAY
         time = (2//TIME_CAP * self.time) - 1 # linear compression of the time
         
         if perspective == None:
-            return np.array([*self.p1.get_state(), *self.p2.get_state(), time*TIME_MAGNITUDE, *self.RING.topleft, *self.RING.topright, *self.RING.bottomleft, *self.RING.bottomright])
+            return np.array([*self.p1.get_state(), *self.p2.get_state(), time, *self.RING.topleft, *self.RING.topright, *self.RING.bottomleft, *self.RING.bottomright])
         if perspective == 'p1':
-            return np.array([*self.p1.get_state(), *self.p2.get_state(), time*TIME_MAGNITUDE, *self.RING.topleft, *self.RING.topright, *self.RING.bottomleft, *self.RING.bottomright])
+            return np.array([*self.p1.get_state(), *self.p2.get_state(), time, *self.RING.topleft, *self.RING.topright, *self.RING.bottomleft, *self.RING.bottomright])
         if perspective == 'p2':
-            return np.array([*self.p2.get_state(), *self.p1.get_state(), time*TIME_MAGNITUDE, *self.RING.topleft, *self.RING.topright, *self.RING.bottomleft, *self.RING.bottomright])
+            return np.array([*self.p2.get_state(), *self.p1.get_state(), time, *self.RING.topleft, *self.RING.topright, *self.RING.bottomleft, *self.RING.bottomright])
         
     def _get_logical_info(self, perspective):
         """
@@ -195,7 +194,7 @@ class BoxingEnv(gym.Env):
                 if p2.state == 1: # combo reset
                     p2.cancel_punch()
                 p1.score += 1
-                return +100, -50
+                return min(50 + p1.score, 100), 0 # this should penalize more when the score are near
             if p1.hitbox and not p1.hitbox.colliderect(p2.get_rect()):
                 return -10, 0 # penalizing missed punches  
             return 0, 0
