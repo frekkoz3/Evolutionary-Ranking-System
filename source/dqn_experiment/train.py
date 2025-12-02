@@ -15,9 +15,9 @@ sys.path.append(ROOT)
 
 from source.games.boxing.boxing import *
 from source.console import *
-from dqn_agent import *
 from tqdm import tqdm
 from source.individual import LogicalAIIndividual
+from source.dqn_agent.dqn_agent import * 
 
 if __name__ == '__main__':
     # --------------------------------------
@@ -57,5 +57,5 @@ if __name__ == '__main__':
         # --------------------------------------
         # Checkpoints saving
         # --------------------------------------
-        p1.save(path = f"players/p1_v4_{checkpoint_index + 1 + i}.pth")
-        p2.save(path = f"players/p2_v4_{checkpoint_index + 1 + i}.pth")
+        p1.save(path = f"players/p1_v5_{checkpoint_index + 1 + i}.pth")
+        p2.save(path = f"players/p2_v5_{checkpoint_index + 1 + i}.pth")

@@ -55,7 +55,7 @@ class BoxingEnv(gym.Env):
         self.observation_space = spaces.Box(
             low=-np.inf,
             high=np.inf,
-            shape=(Boxer.state_dim()*2 + 9,),   # twice the size of a player + time + ring corners
+            shape=(Boxer.state_dim()*2 + 1,),   # twice the size of a player + time + ring corners
             dtype=np.float32
         )
         # ------------------------------------------------------
@@ -105,11 +105,11 @@ class BoxingEnv(gym.Env):
         time = (2//TIME_CAP * self.time) - 1 # linear compression of the time
         
         if perspective == None:
-            return np.array([*self.p1.get_state(), *self.p2.get_state(), time, *self.RING.topleft, *self.RING.topright, *self.RING.bottomleft, *self.RING.bottomright])
+            return np.array([*self.p1.get_state(), *self.p2.get_state(), time])
         if perspective == 'p1':
-            return np.array([*self.p1.get_state(), *self.p2.get_state(), time, *self.RING.topleft, *self.RING.topright, *self.RING.bottomleft, *self.RING.bottomright])
+            return np.array([*self.p1.get_state(), *self.p2.get_state(), time])
         if perspective == 'p2':
-            return np.array([*self.p2.get_state(), *self.p1.get_state(), time, *self.RING.topleft, *self.RING.topright, *self.RING.bottomleft, *self.RING.bottomright])
+            return np.array([*self.p2.get_state(), *self.p1.get_state(), time])
         
     def _get_logical_info(self, perspective):
         """
@@ -189,14 +189,25 @@ class BoxingEnv(gym.Env):
         # Hit detection
         # -------------------------------
 
+        def rect_distance(r1, r2):
+            # Horizontal distance
+            dx = max(r1.left - r2.right, r2.left - r1.right, 0)
+
+            # Vertical distance
+            dy = max(r1.top - r2.bottom, r2.top - r1.bottom, 0)
+
+            # Euclidean distance
+            return (dx*dx + dy*dy) ** 0.5
+
+
         def hit_detection(p1 : Boxer, p2 : Boxer):
             if p1.hitbox and p1.hitbox.colliderect(p2.get_rect()):
                 if p2.state == 1: # combo reset
                     p2.cancel_punch()
                 p1.score += 1
-                return min(50 + p1.score, 100), 0 # this should penalize more when the score are near
+                return 100, 0 # this should penalize more when the score are near
             if p1.hitbox and not p1.hitbox.colliderect(p2.get_rect()):
-                return -10, 0 # penalizing missed punches  
+                return -rect_distance(p1.hitbox, p2.get_rect()), 0 # penalizing missed punches  
             return 0, 0
         
         reward_p1, reward_p2 = hit_detection(self.p1, self.p2)
@@ -214,35 +225,20 @@ class BoxingEnv(gym.Env):
         # Check ending
         # -------------------------------
         terminated, truncated = False, False
-        if self.p1.score >= 100 or self.p2.score >= 100:
-            terminated = True
-            if self.p1.score > self.p2.score:
-                reward_p1 = 100
-                reward_p2 = -100
-            elif self.p2.score > self.p1.score:
-                reward_p1 = -100
-                reward_p2 = 100
-            else:
-                reward_p1 = -1
-                reward_p2 = -1
-        
-        # --------------------------------
-        # Time update
-        # --------------------------------
         self.time += 1
-        if self.time >= MAXIMUM_TIME * FPS // FRAME_DELAY:
+        if self.p1.score >= 100 or self.p2.score >= 100 or self.time >= MAXIMUM_TIME * FPS // FRAME_DELAY:
             terminated = True
             truncated = True
             if self.p1.score > self.p2.score:
                 reward_p1 = 1000
-                reward_p2 = -1000
+                reward_p2 = -100
             elif self.p2.score > self.p1.score:
-                reward_p1 = -1000
+                reward_p1 = -100
                 reward_p2 = 1000
             else:
-                reward_p1 = -(1000 - self.p1.score)
-                reward_p2 = -(1000 - self.p2.score)
-
+                reward_p1 = -100
+                reward_p2 = -100
+            
         # -----------------------------------
         # Reward shaping
         # -----------------------------------

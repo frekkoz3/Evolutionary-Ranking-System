@@ -15,9 +15,9 @@ sys.path.append(ROOT)
 
 from source.games.boxing.boxing import *
 from source.console import *
-from dqn_agent import *
 from tqdm import tqdm
 from source.individual import LogicalAIIndividual, RealIndividual
+from source.dqn_agent.dqn_agent import *
 
 import argparse
 

@@ -93,12 +93,12 @@ class DQNAgent(Individual):
             self.steps_done = int(self.steps_done*percentage)
         self.update_t = 0
 
-    def move(self, state, env):
+    def move(self, state, env, eval_mode = False):
         state = torch.tensor(state, dtype=torch.float32, device=self.device)
         sample = random.random()
         eps_threshold = EPS_START - (EPS_START - EPS_END) * (self.steps_done / EPS_DECAY)
         eps_threshold = max(EPS_END, eps_threshold)  # clamp so it doesn't go below end
-        self.steps_done += 1
+        self.steps_done = self.steps_done + 1 if not eval_mode else self.steps_done
         if sample > eps_threshold:
             with torch.no_grad():
                 # torch.argmax().item() will return the index of the maximum
@@ -121,7 +121,7 @@ class DQNAgent(Individual):
         self.update_t += 1
 
         if self.update_t%BATCH_SIZE != 0: # update only once every batch size steps
-            return 
+            return
 
         if len(self.memory) < BATCH_SIZE:
             return

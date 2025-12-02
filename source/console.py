@@ -42,13 +42,13 @@ def play_boxing(players = [RandomIndividual(), RandomIndividual()], render_mode 
         elif isinstance(players[0], LogicalAIIndividual):
             action_a = players[0].move(env, 'p1')
         else:
-            action_a = players[0].move(np.array(obs_a), env)
+            action_a = players[0].move(np.array(obs_a), env, eval_mode)
         if isinstance(players[1], RandomIndividual) or isinstance(players[1], RealIndividual):
             action_b = players[1].move(env)
         elif isinstance(players[1], LogicalAIIndividual):
             action_b = players[1].move(env, 'p2')
         else:
-            action_b = players[1].move(np.array(obs_b), env)
+            action_b = players[1].move(np.array(obs_b), env, eval_mode)
         
         new_obs, (r_a, r_b), done, truncated, info = env.step((action_a, action_b))
         new_obs_a = env.get_obs('p1')

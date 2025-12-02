@@ -11,6 +11,7 @@
 """
 import random
 from collections import namedtuple, deque
+import numpy as np
 
 Transition = namedtuple('Transition',
                         ('state', 'action', 'reward', 'next_state', 'done'))
@@ -25,7 +26,23 @@ class ReplayMemory(object):
         self.memory.append(Transition(*args))
 
     def sample(self, batch_size):
-        return random.sample(self.memory, batch_size)
+        """
+            This sample methods try to give more probability to sample states were a reward was collected (both positive and negative ones)
+        """
+        mem_list = list(self.memory)
+
+        # Extract reward from each transition
+        rewards = np.array([t.reward for t in mem_list], dtype=np.float64)
+
+        # Weights are the absolute values of the rewards + 1 
+        weights = abs(rewards) + 1 
+        weights = weights / weights.sum()
+
+        # Weighted sample without replacement
+        idxs = np.random.choice(len(mem_list), batch_size, replace=False, p=weights)
+        samples = [mem_list[i] for i in idxs]
+
+        return samples
 
     def __len__(self):
         return len(self.memory)

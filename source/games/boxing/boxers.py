@@ -32,6 +32,9 @@ class Boxer:
         self.score = 0
         self.sprite = None
 
+        # Saving last position
+        self.movement = (0, 0)
+
         # Combat stats
         self.stamina = 100
         self.max_stamina = 100
@@ -57,7 +60,7 @@ class Boxer:
     
     @classmethod
     def state_dim(self):
-        return 27 # to tweak each time
+        return 28 # to tweak each time
 
     def get_state(self):
         """
@@ -68,24 +71,29 @@ class Boxer:
             px, py = self.hitbox.center
         x, y = self.get_rect().center
         temp = np.array(self.punches_stamina_penalty())
-        return x, y, px, py, self.state, self.timer, self.stamina, self.speed, self.stamina_reg_lev(self.stamina), *(np.array(self.PUNCHES[0])*temp), *(np.array(self.PUNCHES[1])*temp), *(np.array(self.PUNCHES[2])*temp), self.is_punching, self.last_action, self.size//2, self.size//4, self.score
+        return x, y, *self.movement, px, py, self.state, self.timer, self.stamina, self.speed, self.stamina_reg_lev(self.stamina), *(np.array(self.PUNCHES[0])*temp), *(np.array(self.PUNCHES[1])*temp), *(np.array(self.PUNCHES[2])*temp), self.is_punching, self.last_action, self.size//2, self.size//4, self.score
 
     # ---------------------------------------------------------
     # Movement
     # ---------------------------------------------------------
     def move(self, action):
         self.last_action = action
+        self.movement = (0, 0)
         self.speed = SPEED * self.stamina_reg_lev(min_value=0.2, max_value=1)
         if action == 0: # idle
             pass
         if action == 1:   # up
             self.y -= self.speed
+            self.movement = (0, -1)
         elif action == 2: # down
             self.y += self.speed
+            self.movement = (0, 1)
         elif action == 3: # left
             self.x -= self.speed
+            self.movement = (-1, 0)
         elif action == 4: # right
             self.x += self.speed
+            self.movement = (1, 0)
 
     # ---------------------------------------------------------
     # Start a punch
