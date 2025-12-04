@@ -143,6 +143,8 @@ class BoxingEnv(gym.Env):
         else:
             a1, a2 = actions
 
+        reward_p1, reward_p2 = 0, 0
+
         # -------------------------------
         # Movement
         # -------------------------------
@@ -171,10 +173,13 @@ class BoxingEnv(gym.Env):
 
         if a1 in [5, 6, 7]:
             err1 = self.p1.start_punch(a1 - 5)
+            if err1 == -1:
+                reward_p1 -= 10 # penalize illegal punches
                 
         if a2 in [5, 6, 7]:
             err2 = self.p2.start_punch(a2 - 5)
-                
+            if err2 == -1:
+                reward_p2 -= 10
         # -------------------------------
         # Punch update
         # -------------------------------
@@ -210,7 +215,9 @@ class BoxingEnv(gym.Env):
                 return -rect_distance(p1.hitbox, p2.get_rect()), 0 # penalizing missed punches  
             return 0, 0
         
-        reward_p1, reward_p2 = hit_detection(self.p1, self.p2)
+        t1, t2 = hit_detection(self.p1, self.p2)
+        reward_p1 += t1
+        reward_p2 += t2
         t1, t2 = hit_detection(self.p2, self.p1)
         reward_p1 += t1 
         reward_p2 += t2
@@ -244,13 +251,13 @@ class BoxingEnv(gym.Env):
         # -----------------------------------
         # Attraction between players
         # -----------------------------------
-        if abs(self.p1.x - self.p2.x) > self.RING_W // 4:
+        """if abs(self.p1.x - self.p2.x) > self.RING_W // 4:
             reward_p1 += -1
             reward_p2 += -1
         if abs(self.p1.y - self.p2.y) > self.p1.size // 2:
             reward_p1 += -1
             reward_p2 += -1
-        """# -----------------------------------
+        # -----------------------------------
         # Illegal movement penalty
         # -----------------------------------
         reward_p1 += mov_penalty_1

@@ -35,14 +35,14 @@ class ReplayMemory(object):
         rewards = np.array([t.reward for t in mem_list], dtype=np.float64)
 
         # Weights are the absolute values of the rewards + 1 
-        weights = abs(rewards) + 1 
+        weights = np.absolute(rewards) + 1 
         weights = weights / weights.sum()
 
         # Weighted sample without replacement
-        idxs = np.random.choice(len(mem_list), batch_size, replace=False, p=weights)
+        idxs = np.random.choice(len(mem_list), batch_size, replace=False, p=weights.flatten())
         samples = [mem_list[i] for i in idxs]
 
-        return samples
+        return random.sample(self.memory, batch_size) # samples
 
     def __len__(self):
         return len(self.memory)

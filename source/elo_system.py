@@ -91,8 +91,7 @@ def play(player_class = ind.RandomIndividual, matchmaking_fun = mmk.matches, pla
     lam = 400 # lambda for the probability of winning
     k = 20 # k for the constant in the elo update
 
-    n = 40 # number of individuals. please keep it a multiple of 2 for now
-    """
+    n = 60 # number of individuals. please keep it a multiple of 2 for now
     if player_class == DQNAgent:
         players = [DQNAgent.load("individuals/individual1.pth") if np.random.random() > 0.5 else DQNAgent.load("individuals/individual2.pth") for _ in range(n)]
         for i in range (len(players)):
@@ -105,7 +104,7 @@ def play(player_class = ind.RandomIndividual, matchmaking_fun = mmk.matches, pla
         players = [player_class(n_actions = env.action_space.n, n_observations = env.observation_space.shape[0]) for _ in range (n)]
     else:
         players = [player_class() for _ in range (n)]
-
+    """
     number_of_rounds = 200
 
     render_mode = "non-human"
@@ -149,4 +148,4 @@ if __name__ == '__main__':
     # poison_position = [-1, -1] # position of the poisoned block on the chomp board. [-1, -1] = random
     
     # kwargs = { "rows" : rows, "cols" : cols, "poison_position" : poison_position}
-    show_results()
+    show_results(starting_index=0, number_of_individuals=60)

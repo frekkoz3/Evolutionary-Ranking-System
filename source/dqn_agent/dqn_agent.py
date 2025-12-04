@@ -90,7 +90,7 @@ class DQNAgent(Individual):
         if percentage == None:
             self.steps_done -= max(0, 60*120*50) # just to reintroduce a bit of stochasticity
         else:
-            self.steps_done = int(self.steps_done*percentage)
+            self.steps_done = int(EPS_DECAY*percentage)
         self.update_t = 0
 
     def move(self, state, env, eval_mode = False):
@@ -98,11 +98,12 @@ class DQNAgent(Individual):
         sample = random.random()
         eps_threshold = EPS_START - (EPS_START - EPS_END) * (self.steps_done / EPS_DECAY)
         eps_threshold = max(EPS_END, eps_threshold)  # clamp so it doesn't go below end
-        self.steps_done = self.steps_done + 1 if not eval_mode else self.steps_done
+        self.steps_done = min(self.steps_done + 1, EPS_DECAY) if not eval_mode else self.steps_done # to prevent overflow
         if sample > eps_threshold:
             with torch.no_grad():
                 # torch.argmax().item() will return the index of the maximum
-                return torch.argmax(self.policy_net(state)).item()
+                act = torch.argmax(self.policy_net(state)).item()
+                return act # torch.argmax(self.policy_net(state)).item()
         else:
             return env.action_space.sample()
     
@@ -202,9 +203,8 @@ class DQNAgent(Individual):
 
     def mutate(self, policy_scale = 0.1, target_scale = 0.1):
         """
-            This method should be used only by loaded individuals this is why the self.id is setted
+            This method should be used only by loaded individuals.
         """
-        self.id = next(DQNAgent._ids)
         def perturb_model(model, scale=0.01):
             with torch.no_grad():            # avoid tracking in autograd
                 for p in model.parameters():

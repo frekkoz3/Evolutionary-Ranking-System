@@ -29,13 +29,17 @@ if __name__ == '__main__':
     
     n_observations = env.observation_space.shape[0]
     n_actions = env.action_space.n
-    checkpoint_index = 0
-    """p1 = DQNAgent.load(f"players/p1_v4_{checkpoint_index}.pth")#(n_actions, n_observations)
-    p2 = DQNAgent.load(f"players/p2_v4_{checkpoint_index}.pth")#(n_actions, n_observations)
-    p1.reset(percentage = 0.25)
-    p2.reset(percentage = 0.25)"""
-    p1 = DQNAgent(n_actions, n_observations)
+    checkpoint_index = 6
+    p1 = DQNAgent.load(f"players/p1_v5_{checkpoint_index}.pth")#(n_actions, n_observations)
+    p2 = DQNAgent.load(f"players/p2_v5_{checkpoint_index}.pth")#(n_actions, n_observations)
+    p1.reset(percentage = 0.75)
+    p2.reset(percentage = 0.75)
+    """p1 = DQNAgent(n_actions, n_observations)
     p2 = DQNAgent(n_actions, n_observations)
+    p1.save("players/p1_v5_0.pth")
+    p2.save("players/p2_v5_0.pth")"""
+    p3 = DQNAgent.load("players/p1_v5_0.pth")
+    p4 = DQNAgent.load("players/p2_v5_0.pth")
     # --------------------------------------
     # Main loop
     # --------------------------------------
@@ -48,10 +52,14 @@ if __name__ == '__main__':
         for j in tqdm(range (n_games), desc=f"Iteration {i} on going", unit="game"):
             p1.update_t = 0
             p2.update_t = 0
-            if i%2 == 0:
-                play_boxing(players=[p1, p2], render_mode=render_mode, eval_mode= False)
+            if random.uniform(0, 1) > 0.5 or i == 0:
+                if i%2 == 0:
+                    play_boxing(players=[p1, p2], render_mode=render_mode, eval_mode= False)
+                else:
+                    play_boxing(players=[p2, p1], render_mode=render_mode, eval_mode= False)
             else:
-                play_boxing(players=[p2, p1], render_mode=render_mode, eval_mode= False)
+                play_boxing(players=[p1, p4], render_mode=render_mode, eval_mode= False)
+                play_boxing(players=[p2, p3], render_mode=render_mode, eval_mode= False)
         p1.reset()
         p2.reset()
         # --------------------------------------
@@ -59,3 +67,6 @@ if __name__ == '__main__':
         # --------------------------------------
         p1.save(path = f"players/p1_v5_{checkpoint_index + 1 + i}.pth")
         p2.save(path = f"players/p2_v5_{checkpoint_index + 1 + i}.pth")
+        if j > 2:
+            p3 = DQNAgent.load(path = f"players/p1_v5_{checkpoint_index + i}.pth")
+            p4 = DQNAgent.load(path = f"players/p2_v5_{checkpoint_index + i}.pth")
