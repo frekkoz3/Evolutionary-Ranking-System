@@ -13,7 +13,7 @@ import os
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
 sys.path.append(ROOT)
 
-from source.individual import Individual
+from source.agents.individual import Individual
 
 import math
 import random
@@ -24,7 +24,7 @@ import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
 
-from source.dqn_agent.replay_buffer import ReplayMemory
+from source.agents.dqn_agent.replay_buffer import ReplayMemory
 
 class DQN(nn.Module):
 

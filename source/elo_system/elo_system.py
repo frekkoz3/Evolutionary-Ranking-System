@@ -8,9 +8,9 @@
 """
 
 import ELO as elo 
-import console as cns
-import individual as ind
-from dqn_agent.dqn_agent import *
+import source.games.console as cns
+import source.agents.individual as ind
+from source.agents.dqn_agent.dqn_agent import *
 import matchmaking as mmk
 import numpy as np
 from matplotlib import pyplot as plt

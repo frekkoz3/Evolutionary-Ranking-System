@@ -14,10 +14,10 @@ ROOT = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
 sys.path.append(ROOT)
 
 from source.games.boxing.boxing import *
-from source.console import *
+from source.games.console import *
 from tqdm import tqdm
-from source.individual import LogicalAIIndividual, RealIndividual
-from source.dqn_agent.dqn_agent import *
+from source.agents.individual import LogicalAIIndividual, RealIndividual
+from source.agents.dqn_agent.dqn_agent import *
 
 import argparse
 

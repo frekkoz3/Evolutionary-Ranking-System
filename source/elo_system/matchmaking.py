@@ -8,7 +8,6 @@
     Functions list:
         - matches(individuals)
 """
-from individual import *
 import random
 
 def matches(individuals):

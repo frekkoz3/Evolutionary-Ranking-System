@@ -14,8 +14,8 @@ ROOT = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
 sys.path.append(ROOT)
 
 from elo_system import play
-from console import play_boxing
-from dqn_agent.dqn_agent import DQNAgent
+from source.games.console import play_boxing
+from source.agents.dqn_agent.dqn_agent import DQNAgent
 from games.boxing.boxing import BoxingEnv
 if __name__ == '__main__':
     

@@ -9,7 +9,7 @@
     Function list:
         - play_boxing()
 """
-from source.individual import *
+from source.agents.individual import *
 from source.games.boxing.boxing import *
 
 """from individual import *
