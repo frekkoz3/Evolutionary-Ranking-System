@@ -12,9 +12,6 @@
 from source.agents.individual import *
 from source.games.boxing.boxing import *
 
-"""from individual import *
-from games.boxing.boxing import *"""
-
 def play_boxing(players = [RandomIndividual(), RandomIndividual()], render_mode = "human", eval_mode = True, **kwargs):
     """
         This play fun function follows the gym env protocol.

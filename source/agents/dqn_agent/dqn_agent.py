@@ -6,13 +6,6 @@
 
     This file contains the implementation of an dqn agent.
 """
-import sys
-import os
-
-# Add the root of the project to Python path
-ROOT = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
-sys.path.append(ROOT)
-
 from source.agents.individual import Individual
 
 import math

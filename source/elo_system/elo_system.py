@@ -6,15 +6,17 @@
     
     This file contains the handler for the entire game using the elo_system.
 """
-
-import ELO as elo 
+import source.elo_system.ELO as elo 
 import source.games.console as cns
 import source.agents.individual as ind
-from source.agents.dqn_agent.dqn_agent import *
-import matchmaking as mmk
+from source.agents.dqn_agent.dqn_agent import DQNAgent
+import source.elo_system.matchmaking as mmk
 import numpy as np
 from matplotlib import pyplot as plt
 from tqdm import tqdm
+
+from source import INDIVIDUALS_DIR
+import os
 
 def config():
     """
@@ -92,8 +94,9 @@ def play(player_class = ind.RandomIndividual, matchmaking_fun = mmk.matches, pla
     k = 20 # k for the constant in the elo update
 
     n = 60 # number of individuals. please keep it a multiple of 2 for now
-    if player_class == DQNAgent:
-        players = [DQNAgent.load("individuals/individual1.pth") if np.random.random() > 0.5 else DQNAgent.load("individuals/individual2.pth") for _ in range(n)]
+
+    if issubclass(player_class, DQNAgent):
+        players = [DQNAgent.load(os.path.join(INDIVIDUALS_DIR, "individual1.pth")) if np.random.random() > 0.5 else DQNAgent.load(os.path.join(INDIVIDUALS_DIR, "individual2.pth")) for _ in range(n)]
         for i in range (len(players)):
             players[i].mutate()
     else:

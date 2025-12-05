@@ -6,20 +6,16 @@
 
     This file contains the evaluation side for the dqn agent.
 """
-import sys
-import os
-
-# Add the root of the project to Python path
-ROOT = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
-sys.path.append(ROOT)
-
 from source.games.boxing.boxing import *
 from source.games.console import *
 from tqdm import tqdm
 from source.agents.individual import LogicalAIIndividual, RealIndividual
 from source.agents.dqn_agent.dqn_agent import *
 
+from source.experiments.dqn_experiment import DQN_PLAYERS_ROOT
+
 import argparse
+import os
 
 if __name__ == '__main__':
 
@@ -33,8 +29,8 @@ if __name__ == '__main__':
 
     p1_v, p2_v = args.v1, args.v2
     human = args.human
-    p1 = DQNAgent.load(f"{ROOT}/source/dqn_experiment/players/p1_v5_{p1_v}.pth")
-    p2 = DQNAgent.load(f"{ROOT}/source/dqn_experiment/players/p2_v5_{p2_v}.pth")
+    p1 = DQNAgent.load(os.path.join(DQN_PLAYERS_ROOT, f"p1_v5_{p1_v}.pth"))
+    p2 = DQNAgent.load(os.path.join(DQN_PLAYERS_ROOT, f"p1_v5_{p2_v}.pth"))
     p3 = RealIndividual()
     if human:
         play_boxing(players=[p1, p3], render_mode="human", eval_mode = True)

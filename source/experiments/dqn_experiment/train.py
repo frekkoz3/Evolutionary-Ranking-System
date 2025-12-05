@@ -6,18 +6,15 @@
 
     This file contains the train side for the dqn agent.
 """
-import sys
-import os
-
-# Add the root of the project to Python path
-ROOT = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
-sys.path.append(ROOT)
 
 from source.games.boxing.boxing import *
-from source.console import *
+from source.games.console import *
 from tqdm import tqdm
-from source.individual import LogicalAIIndividual
-from source.dqn_agent.dqn_agent import * 
+from source.agents.individual import LogicalAIIndividual
+from source.agents.dqn_agent.dqn_agent import * 
+import random
+from source.experiments.dqn_experiment import DQN_PLAYERS_ROOT
+import os
 
 if __name__ == '__main__':
     # --------------------------------------
@@ -30,16 +27,16 @@ if __name__ == '__main__':
     n_observations = env.observation_space.shape[0]
     n_actions = env.action_space.n
     checkpoint_index = 6
-    p1 = DQNAgent.load(f"players/p1_v5_{checkpoint_index}.pth")#(n_actions, n_observations)
-    p2 = DQNAgent.load(f"players/p2_v5_{checkpoint_index}.pth")#(n_actions, n_observations)
+    p1 = DQNAgent.load(os.path.join(DQN_PLAYERS_ROOT, f"p1_v5_{checkpoint_index}.pth")) #(n_actions, n_observations)
+    p2 = DQNAgent.load(os.path.join(DQN_PLAYERS_ROOT, f"p2_v5_{checkpoint_index}.pth"))#(n_actions, n_observations)
     p1.reset(percentage = 0.75)
     p2.reset(percentage = 0.75)
     """p1 = DQNAgent(n_actions, n_observations)
     p2 = DQNAgent(n_actions, n_observations)
     p1.save("players/p1_v5_0.pth")
     p2.save("players/p2_v5_0.pth")"""
-    p3 = DQNAgent.load("players/p1_v5_0.pth")
-    p4 = DQNAgent.load("players/p2_v5_0.pth")
+    p3 = DQNAgent.load(os.path.join(DQN_PLAYERS_ROOT, f"p1_v5_{0}.pth"))
+    p4 = DQNAgent.load(os.path.join(DQN_PLAYERS_ROOT, f"p2_v5_{0}.pth"))
     # --------------------------------------
     # Main loop
     # --------------------------------------
@@ -65,8 +62,8 @@ if __name__ == '__main__':
         # --------------------------------------
         # Checkpoints saving
         # --------------------------------------
-        p1.save(path = f"players/p1_v5_{checkpoint_index + 1 + i}.pth")
-        p2.save(path = f"players/p2_v5_{checkpoint_index + 1 + i}.pth")
+        p1.save(os.path.join(DQN_PLAYERS_ROOT, f"p1_v5_{checkpoint_index + 1 + i}.pth"))
+        p2.save(os.path.join(DQN_PLAYERS_ROOT, f"p2_v5_{checkpoint_index + 1 + i}.pth"))
         if j > 2:
-            p3 = DQNAgent.load(path = f"players/p1_v5_{checkpoint_index + i}.pth")
-            p4 = DQNAgent.load(path = f"players/p2_v5_{checkpoint_index + i}.pth")
+            p3 = DQNAgent.load(os.path.join(DQN_PLAYERS_ROOT, f"p1_v5_{checkpoint_index + i}.pth"))
+            p4 = DQNAgent.load(os.path.join(DQN_PLAYERS_ROOT, f"p2_v5_{checkpoint_index + i}.pth"))

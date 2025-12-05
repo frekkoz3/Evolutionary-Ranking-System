@@ -74,11 +74,13 @@ dqn_experiment/
 2. Start training:
 
     ```console
-    .../Evolutionary-Ranking-System/source/dqn experiment/py train.py
+    .../Evolutionary-Ranking-System py -m source.experiments.dqn_experiment.train
     ```
 
 3. Evaluate:
 
+    Please, referes to the evaluate.py file to understand the possible arguments.
+
     ```console
-    .../Evolutionary-Ranking-System/source/dqn experiment/py evaluate.py
+    .../Evolutionary-Ranking-System py -m source.experiments.dqn_experiment.evaluate 
     ```

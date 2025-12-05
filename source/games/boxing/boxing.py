@@ -14,7 +14,7 @@ import gymnasium as gym
 import numpy as np
 import pygame
 from gymnasium import spaces
-from .boxers import Boxer
+from source.games.boxing.boxers import Boxer
 
 class UserClosingWindowException(Exception):
     pass
