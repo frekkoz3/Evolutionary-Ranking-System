@@ -2,7 +2,7 @@
 
 This is the repo for the final project of the "Optimization for AI" course.
 
-The goal of this project is to create a novable optimization method for zero-sum games (and for all problems that can be map into a zero-sum game).\\
+The goal of this project is to create a frawmework for a novable optimization method for zero-sum games (and for all problems that can be map into a zero-sum game).\\
 The main idea is to use the already existing ELO system (based not on a in-game fitness function but on a statistical off-game fitness function) in order to generate individuals capable of playing always better and better (until the reach the global optimum that we could call "meta" in this scenario).\\
 In addiction this system add some extra components by evolutionary strategies, incorporating mutations and crossovers, in order to leverage the exploration (the ELO system should works as a leverage for the exploitation).\\
 In the end propers ranks will be added in order to create different "level of difficulty" (such as bronze, silver, gold etc) in order to make the progression for new individual more gradual (since each rank should be increasingly more difficult to reach since individuals populating a rank should be stronger and stronger).
@@ -34,11 +34,13 @@ Now let's talk about individuals.
 
 ## 👾​ INDIVIDUALS
 
-Indivudals are essentialy DQN networks.\
-DQN is a RL algorithm that uses deep neural network to approximate the Q-value table for each pair (state, action).\
-More about the DQN can be found directly in the **'dqn experiment'** folder in the **dqn experiment.md** file.
+Inidivduals can be essentialy whatever.\
+The main idea is that individuals must follows the Individual Protocol descripted in the **'individual.py'** file.\
+Individuals may differs based on the benchmark. For example, in the Atari world it has seens to use individuals that are in fact RL algorithm, while one can think of GP individuals for other benchmarks.
 
-Initially individuals should have been simpler, but in order to produce more variety it has been decided to use a much more complex algorithm such DQN.
+Individual must be able to perform some mutations (even trivial ones) and possibly crossover (even if this is not mandatory).
+
+Before putting individuals in the *evolutionary ranking system framework* one should work on them in order to be sure they work.
 
 ---
 
@@ -65,22 +67,31 @@ Initially individuals should have been simpler, but in order to produce more var
 ```bash
 Evolutionary-Ranking-System
 │
-├── data                     # Folder containing data
 ├── literature               # Folder containing some papers regarding the argument
 ├── source                   # Folder containing the code
+    ├── agents               # Folder for the agents
+        ├── dqn_agent            # Folder containing the dqn agent implementation
+        └── individual.py    # Python implementation of the individual class
     ├── debug                # Folder for the debugging
         └── profiles         # Folder containing debugging profiles of the code
-    ├── dqn experiment       # Folder containing an experiment about the DQN
+    
+    ├── experiments          # Folder containing somee experiments
+        ├── dqn_exp          # Folder containing an experimentation of the dqn algorithm
+        └── r2d2_exp         # Folder containing an experimentation on the r2d2 algorithm
+    
+    ├── elo_system           # Folder containing the elo system
+        ├── elo_system.py    # Python implementation of the wrapper for the entire project
+        ├── ELO.py           # Python implementation of the ELO
+        └── matchmaking.py   # Python implementation of the matchmaking system
+
     ├── games                # Folder containing the implementation of some desired games as gymnasium environment
+        ├── console.py       # Python implementation of the handler between agents and environments
         └── boxing           # Folder containing the implementation of a variant of the "boxing 2600" game as gymnasium environment
-    ├── console.py           # Python implementation of the handler between agents and environments
-    ├── elo_system.py        # Python implementation of the wrapper for the entire project
-    ├── ELO.py               # Python implementation of the ELO
-    ├── evo_utils.py         # Python implementation of some utils for the evolutionary phase
-    ├── individual.py        # Python implementation of the individual class
-    ├── main.py              # Main function to call
-    ├── matchmaking.py       # Python implementation of the matchmaking system
-    └── policy.py            # Python implementation of the policy system
+
+    ├── individuals          # Folder containing individuals files
+
+    └── main.py              # Main function to call
+
 ├── README.md (this file)
 ├── requirements.txt         # Requirements for the virtual environment
 └── todo.md                  # File containing the remaing things to develop

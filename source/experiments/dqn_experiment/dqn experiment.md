@@ -55,7 +55,6 @@ The agent follows the standard DQN training pipeline:
 ```bash
 dqn_experiment/
 │
-├── dqn_agent.py          # Definition of the DQN model and training logic
 ├── replay_buffer.py      # Circular experience memory
 ├── train.py              # Full training loop
 ├── evaluate.py           # Run evaluation episodes
