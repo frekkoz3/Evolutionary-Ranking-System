@@ -115,14 +115,8 @@ This is the simplest example of usage of the system.
     .../Evolutionary-Ranking-System/pip install -r requirements.txt
     ```
 
-3. Change directory:
+3. Run the main:
 
     ```console
-    .../Evolutionary-Ranking-System cd source
-    ```
-
-4. Run the *main.py* file:
-
-    ```console
-    .../Evolutionary-Ranking-System/source py main.py
+    .../Evolutionary-Ranking-System py -m source.main
     ```
