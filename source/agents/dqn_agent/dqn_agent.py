@@ -10,14 +10,13 @@ from source.agents.individual import Individual
 
 import math
 import random
-from collections import namedtuple, deque
 
 import torch
 import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
 
-from source.agents.dqn_agent.replay_buffer import ReplayMemory
+from source.agents.dqn_agent.replay_buffer import ReplayMemory, Transition
 
 class DQN(nn.Module):
 
@@ -52,9 +51,6 @@ EPS_DECAY = 60*120*600 # fps * maximum time * minimum number of game to learn
 TAU = 0.005
 LR = 3e-4
 REPLAY_SIZE = 60*60 # first 60 seconds of a game
-
-Transition = namedtuple('Transition',
-                        ('state', 'action', 'reward', 'next_state', 'done'))
 
 class DQNAgent(Individual):
 
