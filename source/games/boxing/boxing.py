@@ -305,7 +305,7 @@ class BoxingEnv(gym.Env):
         self.window.fill((30, 30, 30))
 
         # --------------------------------------------------
-        # Draw ring (simple rectangle)
+        # Draw ring
         # --------------------------------------------------
         pygame.draw.rect(
             self.window,
