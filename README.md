@@ -2,9 +2,9 @@
 
 This is the repo for the final project of the "Optimization for AI" course.
 
-The goal of this project is to create a frawmework for a novable optimization method for zero-sum games (and for all problems that can be map into a zero-sum game).\\
-The main idea is to use the already existing ELO system (based not on a in-game fitness function but on a statistical off-game fitness function) in order to generate individuals capable of playing always better and better (until the reach the global optimum that we could call "meta" in this scenario).\\
-In addiction this system add some extra components by evolutionary strategies, incorporating mutations and crossovers, in order to leverage the exploration (the ELO system should works as a leverage for the exploitation).\\
+The goal of this project is to create a frawmework for a novable optimization method for zero-sum games (and for all problems that can be map into a zero-sum game).\
+The main idea is to use the already existing ELO system (based not on a in-game fitness function but on a statistical off-game fitness function) in order to generate individuals capable of playing always better and better (until the reach the global optimum that we could call "meta" in this scenario).\
+In addiction this system add some extra components by evolutionary strategies, incorporating mutations and crossovers, in order to leverage the exploration (the ELO system should works as a leverage for the exploitation).\
 In the end propers ranks will be added in order to create different "level of difficulty" (such as bronze, silver, gold etc) in order to make the progression for new individual more gradual (since each rank should be increasingly more difficult to reach since individuals populating a rank should be stronger and stronger).
 
 ---
