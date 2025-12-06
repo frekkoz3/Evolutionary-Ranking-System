@@ -16,8 +16,7 @@ import pygame
 from gymnasium import spaces
 from source.games.boxing.boxers import Boxer
 
-class UserClosingWindowException(Exception):
-    pass
+from source.games import UserClosingWindowException
 
 FPS = 60
 FRAME_DELAY = 1 # frame to wait between each decision -> this must be set also in the individual 
@@ -368,7 +367,9 @@ class BoxingEnv(gym.Env):
         pygame.display.flip()
         self.clock.tick(FPS)
 
-    # =======================================================
+    # ---------------------------------------------
+    # Close
+    # ---------------------------------------------
     def close(self):
         if self.window is not None:
             pygame.quit()

@@ -25,6 +25,7 @@ class Player():
         self.stamina = 100
         self.max_stamina = 100
         self.last_action = 0
+        self.score = 0
         self.name = name
         self.role = role # it can be catcher or runner
 
@@ -54,7 +55,7 @@ class Player():
     
     @classmethod
     def state_dim(self):
-        return 2
+        return 3
     
     def get_state(self):
-        return self.x, self.y
+        return self.x, self.y, 0 if self.role == 'catcher' else 1

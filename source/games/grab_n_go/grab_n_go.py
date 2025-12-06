@@ -16,6 +16,8 @@ import numpy as np
 import pygame
 from source.games.grab_n_go.players import Player
 
+from source.games import UserClosingWindowException
+
 FPS = 60
 FRAME_DELAY = 1 # frame to wait between each decision -> this must be set also in the individual 
 MAXIMUM_TIME = 30 # time in second
@@ -196,6 +198,11 @@ class GrabNGoEnv(gym.Env):
             pygame.init()
             self.window = pygame.display.set_mode((self.width, self.height))
             self.clock = pygame.time.Clock()
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                self.close()
+                raise UserClosingWindowException("The game is terminated since the user decided to quit")
 
         self.window.fill((0, 0, 0))
 
