@@ -32,6 +32,14 @@ class BoxingEnv(gym.Env):
     def __init__(self, render_mode=None, **kwargs):
         super().__init__()
 
+        # Screen sizes
+        self.W = 300
+        self.H = 350
+
+        # Boxers
+        self.p1 = Boxer(self.W//2 - 50 - 50//2, self.H//2 - self.HUD_HEIGHT, (200, 50, 50), "P1") # - 50 - half its width
+        self.p2 = Boxer(self.W//2 + 50 - 50//2, self.H//2 - self.HUD_HEIGHT, (50, 50, 200), "P2")
+
         # ------------------------------------------------------
         # Gym spaces (two players, discrete actions)
         # 0 = idle, 1 up, 2 down, 3 left, 4 right,
@@ -51,23 +59,20 @@ class BoxingEnv(gym.Env):
         }
 
         # For now the observation space is composed by :
-        #  p1.state, p2.state
+        # p1.state, p2.state, time feature
         self.observation_space = spaces.Box(
             low=-np.inf,
             high=np.inf,
-            shape=(Boxer.state_dim()*2 + 1,),   # twice the size of a player + time + ring corners
+            shape=(Boxer.state_dim()*2 + 1,),   # twice the size of a player + time
             dtype=np.float32
         )
+
         # ------------------------------------------------------
         # Rendering
         # ------------------------------------------------------
         self.render_mode = render_mode
         self.window = None
         self.clock = None
-
-        # screen sizes
-        self.W = 300
-        self.H = 350
 
         # Ring bounds:
         # leave a HUD zone of 50px at top for points
