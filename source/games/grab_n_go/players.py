@@ -21,6 +21,8 @@ class Player():
     def __init__(self, x, y, name, role):
         self.x = x
         self.y = y
+        self.last_x = x
+        self.last_y = y
         self.speed = 5
         self.stamina = 100
         self.max_stamina = 100
@@ -55,7 +57,7 @@ class Player():
     
     @classmethod
     def state_dim(self):
-        return 3
+        return 4
     
     def get_state(self):
-        return self.x, self.y, 0 if self.role == 'catcher' else 1
+        return self.x, self.y, self.last_action, 0 if self.role == 'catcher' else 1

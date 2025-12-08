@@ -26,6 +26,7 @@ W = 500
 H = 500
 OBSTACLE_SIZE = 50
 OBSTACLE_COLOR = (255, 165, 0)
+PLAYERS_DISTANCE = 80
 # the total maximum time in terms of time step is maximum_time * fps // frame_delay 
 
 # ===========================================================
@@ -44,12 +45,13 @@ class GrabNGoEnv(gym.Env):
         # ------------------------------------------------------
         self.width = width
         self.height = height
+        self.grid = pygame.Rect(0, 0, width, height)
         self.n_obstacles = n_obstacles
         self.time = 0
         self.max_time = max_time
 
-        self.p1 = Player(self.width//2 - 50 - 50//2, self.height//2, "P1", "catcher") # - 50 - half its width
-        self.p2 = Player(self.width//2 + 50 - 50//2, self.height//2, "P2", "runner")
+        self.p1 = Player(self.width//2 - PLAYERS_DISTANCE//2 - 50//2, self.height//2, "P1", "catcher") # - 50 - half its width
+        self.p2 = Player(self.width//2 + PLAYERS_DISTANCE//2 - 50//2, self.height//2, "P2", "runner")
 
         # ------------------------------------------------------
         # Gym spaces (two players, discrete actions)
@@ -95,7 +97,7 @@ class GrabNGoEnv(gym.Env):
         assert perspective == None or perspective == 'p1' or perspective == 'p2'
 
         TIME_CAP = MAXIMUM_TIME * FPS // FRAME_DELAY
-        time = (2//TIME_CAP * self.time) - 1 # linear compression of the time
+        time = (2//TIME_CAP * self.time) # linear compression of the time
         
         if perspective == None:
             return np.array([*self.p1.get_state(), *self.p2.get_state(), *self.get_obstacles(), time])
@@ -104,13 +106,28 @@ class GrabNGoEnv(gym.Env):
         if perspective == 'p2':
             return np.array([*self.p2.get_state(), *self.p1.get_state(), *self.get_obstacles(), time])
         
+    def _not_ok(self, obstacle : pygame.Rect):
+            
+            p1_collision = obstacle.colliderect(self.p1.get_rect())
+            p2_collision = obstacle.colliderect(self.p2.get_rect())
+            inside = not self.grid.contains(obstacle)
+            
+            if len(self.obstacles) == 0:
+                return p1_collision or p2_collision or inside
+            
+            
+            others_collision = not obstacle.collidelist(self.obstacles) == -1
+
+            return  p1_collision or p2_collision or others_collision or inside
+        
     def _place_random_objects(self):
         
         self.obstacles = []
+
         for _ in range (self.n_obstacles):
             ox, oy = np.random.randint([0, 0], [self.width, self.height])
             obstacle = pygame.Rect(ox, oy, OBSTACLE_SIZE, OBSTACLE_SIZE)
-            while obstacle.colliderect(self.p1.get_rect()) or obstacle.colliderect(self.p2.get_rect()):
+            while self._not_ok(obstacle):
                 ox, oy = np.random.randint([0, 0], [self.width, self.height])
                 obstacle = pygame.Rect(ox, oy, OBSTACLE_SIZE, OBSTACLE_SIZE)
             self.obstacles.append(obstacle)
@@ -125,8 +142,8 @@ class GrabNGoEnv(gym.Env):
 
         super().reset(seed=seed)
 
-        self.p1 = Player(self.width//2 - 100 - 50//2, self.height//2, "P1", "catcher") # - 50 - half its width
-        self.p2 = Player(self.width//2 + 100 - 50//2, self.height//2, "P2", "runner")
+        self.p1 = Player(self.width//2 - PLAYERS_DISTANCE//2 - 50//2, self.height//2, "P1", "catcher") # - 50 - half its width
+        self.p2 = Player(self.width//2 + PLAYERS_DISTANCE//2 - 50//2, self.height//2, "P2", "runner")
 
         self._place_random_objects()
 
@@ -135,6 +152,11 @@ class GrabNGoEnv(gym.Env):
         return self.get_obs(), {}
 
     def step(self, actions):
+
+        def players_distance(p1, p2):
+            return np.sqrt((p1.x - p2.x)**2 + (p1.y - p2.y)**2)
+        
+        old_dist = players_distance(self.p1, self.p2)
 
         if actions == None : #default
             a1, a2 = 0, 0
@@ -152,13 +174,22 @@ class GrabNGoEnv(gym.Env):
             for obstacle in self.obstacles:
                 if t.get_rect().colliderect(obstacle):
                     return False
-            return True
+            return self.grid.contains(t.get_rect())
         
         if legit_movement(self.p1, a1): # This should be tracked in some way
             self.p1.move(a1)
+        else:
+            self.p1.move(0)
 
         if legit_movement(self.p2, a2):
             self.p2.move(a2)
+        else:
+            self.p2.move(0)
+
+        new_dist = players_distance(self.p1, self.p2)
+
+        reward_p1 += 0.1 if new_dist > old_dist and self.p1.role == 'runner' else -0.1
+        reward_p2 += 0.1 if new_dist > old_dist and self.p2.role == 'runner' else -0.1
 
         # --------------------------------
         # Caught
@@ -193,7 +224,10 @@ class GrabNGoEnv(gym.Env):
 
         return self.get_obs(), (reward_p1, reward_p2), terminated, False, {}
 
-    def render(self, mode="human"):
+    def render(self):
+        if self.render_mode != "human":
+            return 
+        
         if self.window is None:
             pygame.init()
             self.window = pygame.display.set_mode((self.width, self.height))
