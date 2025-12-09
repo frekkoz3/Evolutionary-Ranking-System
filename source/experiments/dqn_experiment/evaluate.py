@@ -34,6 +34,12 @@ if __name__ == '__main__':
     human = args.human
     p1 = GNGDQNAgent.load(os.path.join(DQN_PLAYERS_ROOT, f"p1_{name}_{p1_v}.pth"))
     p2 = GNGDQNAgent.load(os.path.join(DQN_PLAYERS_ROOT, f"p1_{name}_{p2_v}.pth"))
+
+    print(p1.catcher.steps_done)
+    print(p1.runner.steps_done)
+    print(p2.catcher.steps_done)
+    print(p2.runner.steps_done)
+    
     p3 = RealIndividual()
     if human:
         play_grab_n_go(players=[p1, p3], render_mode="human", eval_mode = True)

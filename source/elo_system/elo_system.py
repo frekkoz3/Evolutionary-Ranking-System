@@ -32,7 +32,6 @@ def run_match(p1, p2, play_fun, render_mode, eval_mode, k, lam, **kwargs):
     y = p2.get_elo()
     
     result = play_fun(players=[p1, p2], render_mode=render_mode, eval_mode = eval_mode, **kwargs)
-    
     x_new, y_new = elo.return_function(x, y, result, k=k, lam=lam)
 
     p1.update_elo(p2.get_id(), x_new)
@@ -53,10 +52,11 @@ def parallel_round(players, matchmaking_fun, play_fun, render_mode : str, eval_m
 
     players_map = {player.id : player for player in players}
 
-    results = Parallel(n_jobs=n_jobs)(
+    results = Parallel(n_jobs=n_jobs)( 
         delayed(run_match)(p1, p2, play_fun, render_mode, eval_mode, k, lam, **kwargs)
         for (p1, p2) in matches
     ) # this works on copy of the actual players so now we have to copy them back
+    # we could think of computing just the result in parallel and then update the guys serially
 
     # Apply the updates to the real objects
     for p1, p2 in results:
@@ -82,7 +82,7 @@ def round(players : list[ind.Individual], matchmaking_fun, play_fun, render_mode
         p1.update_elo(p2.get_id(), x)
         p2.update_elo(p1.get_id(), y)
 
-def play(player_class = ind.RandomIndividual, matchmaking_fun = mmk.matches, play_fun = cns.play_boxing, parallel = False, eval_mode = False, elitism : int = 5, **kwargs):
+def play(player_class = ind.RandomIndividual, matchmaking_fun = mmk.matches, play_fun = cns.play_boxing, parallel = False, eval_mode = False, **kwargs):
     """
         This function should provides the complete wrapper for everything.
         It should be configurable from a json or something like this.
@@ -95,9 +95,13 @@ def play(player_class = ind.RandomIndividual, matchmaking_fun = mmk.matches, pla
     lam = 400 # lambda for the probability of winning
     k = 20 # k for the constant in the elo update
 
-    t_k = 5 # k for the tournament selection
+    t_k = 5 # k for the tournament selection or for the match selection
 
-    n = 10 # number of individuals. please keep it a multiple of 2 for now
+    elitism = 5 # number of best individuals to keep
+
+    parallel = False # setting for the parallel  -> parallel is not working rn
+
+    n = 100 # number of individuals. please keep it a multiple of 2 for now
 
     if player_class == DQNAgent:
         env = kwargs["env"]
@@ -110,12 +114,11 @@ def play(player_class = ind.RandomIndividual, matchmaking_fun = mmk.matches, pla
 
     number_of_iterations = 5
 
-    number_of_rounds = 50
+    number_of_rounds = 200
 
     render_mode = "non-human"
 
     # --- ACTUAL GAME ---
-    # please note that the actual game played could be anything. It should be sufficient to change the play_fun 
 
     for iteration in range (number_of_iterations):
         # --- ONLINE OPTIMIZATION (RL or whatever) --  
@@ -129,15 +132,18 @@ def play(player_class = ind.RandomIndividual, matchmaking_fun = mmk.matches, pla
         print("Saving and mutating individuals...")
         for player in players:
             player.save(os.path.join(INDIVIDUALS_DIR, f"{iteration}_{player.id}.pth"))
+            print(f"{player.id} : {player.elo}")
         print("Individuals saved")
 
         # --- OFFLINE OPTIMIZATION (evolutionary strategy) ---
-        new_players = sorted(players, key = lambda x : x.elo, reverse = True)[elitism:] # elitism is the number of best individuals to keep
+        new_players = sorted(players, key = lambda x : x.elo, reverse = True)[:elitism] # elitism is the number of best individuals to keep
         
-        for i in range (n - elitism):
-            player = match_selection(players, play_fun, t_k) # this selection is based on an empirical montecarlo approach
+        for _ in range (n - elitism):
+            # tplayer = match_selection(players, play_fun, t_k) # this selection is based on an empirical montecarlo approach
+            tplayer = tournament_selection(players, t_k)
+            player = tplayer.__class__.load(os.path.join(INDIVIDUALS_DIR, f"{iteration}_{tplayer.id}.pth"))
             player.mutate() # what about the elo? for now it is kept the same, but it is not really a good idea 
-            new_players.append(player.__class__.load(os.path.join(INDIVIDUALS_DIR, f"{iteration}_{player.id}.pth")))
+            new_players.append(player)
         
         if iteration != number_of_iterations - 1:
             players = new_players

@@ -123,11 +123,11 @@ def play_grab_n_go(players = [RandomIndividual(), RandomIndividual()], render_mo
         elif isinstance(players[1], LogicalAIIndividual):
             action_b = players[1].move(env, 'p2')
         else:
-            action_b = players[0].move(state = np.array(obs_b), env = env, eval_mode = eval_mode, **{"catcher" : False})
+            action_b = players[1].move(state = np.array(obs_b), env = env, eval_mode = eval_mode, **{"catcher" : False})
         
         new_obs, (r_a, r_b), done, truncated, info = env.step((action_a, action_b))
-        action_a = info['a1'] # it could be that it has been modified
-        action_b = info['a2'] # it could be that it has been modified
+        """action_a = info['a1'] # it could be that it has been modified
+        action_b = info['a2'] # it could be that it has been modified"""
         new_obs_a = env.get_obs('p1')
         new_obs_b = env.get_obs('p2')
 
@@ -154,13 +154,10 @@ def play_grab_n_go(players = [RandomIndividual(), RandomIndividual()], render_mo
                 env.close()
                 #print(f"player {players[0].id} WON against player {players[1].id}. Final score: {env.p1.score} - {env.p2.score}")
                 return (1, 0)
-            elif env.p2.score > env.p1.score:
+            else:
                 env.close()
                 #print(f"player {players[1].id} WON against player {players[0].id}. Final score: {env.p1.score} - {env.p2.score}")
                 return (0, 1)
-            env.close()
-            #print(f"player {players[1].id} and player {players[0].id} went EVEN. Final score: {env.p1.score} - {env.p2.score}")
-            return (0, 0)
         
     env.close()
 

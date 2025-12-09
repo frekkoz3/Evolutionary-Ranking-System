@@ -59,7 +59,7 @@ class Player():
     
     @classmethod
     def state_dim(self):
-        return 7
+        return 2
     
     def get_state(self):
-        return *self.get_rect().center, self.last_x, self.last_y, self.last_action, self.size//2, self.speed
+        return *self.get_rect().center, 

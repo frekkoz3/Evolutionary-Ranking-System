@@ -49,7 +49,7 @@ class Individual():
     def overwrite(self, other):
         self.__dict__ = copy.deepcopy(other.__dict__)
 
-    def observe(self, obs, action, rew, new_obs, done):
+    def observe(self, obs, action, rew, new_obs, done, **kwargs):
         pass
 
     def move(self, **kwargs):

@@ -21,12 +21,12 @@ from source.games import UserClosingWindowException
 FPS = 60
 FRAME_DELAY = 1 # frame to wait between each decision -> this must be set also in the individual 
 MAXIMUM_TIME = 30 # time in second
-N_OBSTACLES = 0
+N_OBSTACLES = 3
 W = 500
 H = 500
 OBSTACLE_SIZE = 50
 OBSTACLE_COLOR = (255, 165, 0)
-PLAYERS_DISTANCE = 80
+PLAYERS_DISTANCE = 60
 # the total maximum time in terms of time step is maximum_time * fps // frame_delay 
 
 # ===========================================================
@@ -89,7 +89,7 @@ class GrabNGoEnv(gym.Env):
 
         self.reset()
 
-    def get_obs(self, perspective = None):
+    def get_obs(self, perspective = None, map = False):
         """
             if no perspective is required, a standard representation is given. 
             p1.state, p2.state, time_feature, ring_corners
@@ -98,7 +98,13 @@ class GrabNGoEnv(gym.Env):
 
         TIME_CAP = MAXIMUM_TIME * FPS // FRAME_DELAY
         time = (2//TIME_CAP * self.time) # linear compression of the time
-        
+
+        if map:
+            p1_x, p1_y = self.p1.get_state()
+            p2_x, p2_y = self.p2.get_state()
+            if perspective == None:
+                return {'p1_x' : p1_x, 'p1_y' : p1_y, 'p2_x' : p2_x, 'p2_y' : p2_y, 'speed' : self.p1.speed, 'size' : self.p1.size, 'time' : FRAME_DELAY*self.time//FPS, 'maximum_time' : MAXIMUM_TIME}
+            # TO HANDLE THIS !!!
         if perspective == None:
             return np.array([*self.p1.get_state(), *self.p2.get_state(), *self.get_obstacles(), time])
         if perspective == 'p1':
@@ -182,21 +188,23 @@ class GrabNGoEnv(gym.Env):
             self.p1.move(a1)
         else:
             self.p1.move(0)
+            reward_p1 -= 1
             info['a1'] = 0
 
         if legit_movement(self.p2, a2):
             self.p2.move(a2)
         else:
             self.p2.move(0)
+            reward_p2 -= 1
             info['a2'] = 0
 
         # -------------------------------
         # Reward shaping
         # -------------------------------
-        """new_dist = players_distance(self.p1, self.p2)
+        new_dist = players_distance(self.p1, self.p2)
 
         reward_p1 += 0.1 if new_dist > old_dist and self.p1.role == 'runner' else -0.1
-        reward_p2 += 0.1 if new_dist > old_dist and self.p2.role == 'runner' else -0.1"""
+        reward_p2 += 0.1 if new_dist > old_dist and self.p2.role == 'runner' else -0.1
 
         # --------------------------------
         # Caught
@@ -215,17 +223,21 @@ class GrabNGoEnv(gym.Env):
         if caught:
             terminated = True
             if self.p1.role == 'catcher':
+                self.p1.score = 1
                 reward_p1 = 10
                 reward_p2 = -10
             else:
+                self.p2.score = 1
                 reward_p1 = -10
                 reward_p2 = 10
         elif self.time >= FPS*MAXIMUM_TIME//FRAME_DELAY:
             terminated = True
             if self.p2.role == 'catcher':
+                self.p1.score = 1
                 reward_p1 = 10
                 reward_p2 = -10
             else:
+                self.p2.score = 1
                 reward_p1 = -10
                 reward_p2 = 10
 
