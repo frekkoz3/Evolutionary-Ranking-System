@@ -14,7 +14,7 @@ import math
 import numpy as np
 
 SIZE = 40
-SPPED = 5 
+SPEED = 10
 
 class Player():
 
@@ -23,7 +23,8 @@ class Player():
         self.y = y
         self.last_x = x
         self.last_y = y
-        self.speed = 5
+        self.speed = SPEED
+        self.size = SIZE
         self.stamina = 100
         self.max_stamina = 100
         self.last_action = 0
@@ -32,8 +33,9 @@ class Player():
         self.role = role # it can be catcher or runner
 
     def move(self, action):
+        self.last_x, self.last_y = self.get_rect().center
         self.last_action = action
-        self.speed = SPPED
+        self.speed = SPEED
         if action == 0: # idle
             pass
         if action == 1:   # up
@@ -57,7 +59,7 @@ class Player():
     
     @classmethod
     def state_dim(self):
-        return 4
+        return 7
     
     def get_state(self):
-        return self.x, self.y, self.last_action, 0 if self.role == 'catcher' else 1
+        return *self.get_rect().center, self.last_x, self.last_y, self.last_action, self.size//2, self.speed

@@ -52,16 +52,20 @@ class Individual():
     def observe(self, obs, action, rew, new_obs, done):
         pass
 
-    def move(self):
+    def move(self, **kwargs):
         pass
 
-    def reset(self):
+    def reset(self, **kwargs):
         pass
 
-    def update(self):
+    def update(self, **kwrags):
         pass
 
     def save(self):
+        pass
+
+    @classmethod
+    def load(cls):
         pass
 
 import numpy as np
@@ -96,14 +100,14 @@ class LogicalAIIndividual:
     def overwrite(self, other):
         self.__dict__ = copy.deepcopy(other.__dict__)
 
-    def observe(self, obs, action, rew, new_obs, done): pass
-    def update(self): pass
-    def save(self): pass
+    def observe(self, obs, action, rew, new_obs, done, **kwargs): pass
+    def update(self, **kwargs): pass
+    def save(self, **kwargs): pass
 
     # -----------------------------------------------------------------
     # MOVE FUNCTION WITH SHORT / MID / LONG PUNCH LOGIC
     # -----------------------------------------------------------------
-    def move(self, env, perspective):
+    def move(self, env, perspective, **kwargs):
         """
             This is a simple yet effective bot. It has some level of difficulty tunable from 1 to 3.
         """
@@ -176,7 +180,7 @@ class LogicalAIIndividual:
 
 class RealIndividual(Individual):
 
-    def move(self, env):
+    def move(self, env, **kwargs):
         """
         This move function will use the env.keymap attribute.
         the keymap is a dict mapping pygame keys to actions.
@@ -194,7 +198,7 @@ class RealIndividual(Individual):
 
 class RandomIndividual(Individual):
     
-    def move(self, game : Env):
+    def move(self, game : Env, **kwargs):
         return game.action_space.sample()
 
 if __name__ == '__main__':

@@ -149,6 +149,8 @@ class BoxingEnv(gym.Env):
 
         reward_p1, reward_p2 = 0, 0
 
+        info = {'a1' : a1, 'a2' : a2}
+
         # -------------------------------
         # Movement
         # -------------------------------
@@ -164,9 +166,15 @@ class BoxingEnv(gym.Env):
         
         if legit_movement(self.p1, self.p2, a1):
             self.p1.move(a1)
+        else:
+            self.p1.move(0)
+            info['a1'] = 0
 
         if legit_movement(self.p2, self.p1, a2):
             self.p2.move(a2)
+        else:
+            self.p2.move(0)
+            info['a2'] = 0
 
         self._clamp_in_ring(self.p1)
         self._clamp_in_ring(self.p2)
@@ -278,7 +286,7 @@ class BoxingEnv(gym.Env):
         reward_p2 += (self.p2.score - self.p1.score)/100"""
         reward = (reward_p1, reward_p2)
         
-        return self.get_obs(), reward, terminated, truncated, {}
+        return self.get_obs(), reward, terminated, truncated, info
 
     # =======================================================
     # Clamp player in the ring area

@@ -10,10 +10,12 @@ import source.elo_system.ELO as elo
 import source.games.console as cns
 import source.agents.individual as ind
 from source.agents.dqn_agent.dqn_agent import DQNAgent
+from source.agents.grab_n_go_dqn_agent.gng_dqn_agent import GNGDQNAgent
 import source.elo_system.matchmaking as mmk
 import numpy as np
 from matplotlib import pyplot as plt
 from tqdm import tqdm
+from source.elo_system.evo_utils import *
 
 from source import INDIVIDUALS_DIR
 import os
@@ -80,7 +82,7 @@ def round(players : list[ind.Individual], matchmaking_fun, play_fun, render_mode
         p1.update_elo(p2.get_id(), x)
         p2.update_elo(p1.get_id(), y)
 
-def play(player_class = ind.RandomIndividual, matchmaking_fun = mmk.matches, play_fun = cns.play_boxing, parallel = False, eval_mode = False, **kwargs):
+def play(player_class = ind.RandomIndividual, matchmaking_fun = mmk.matches, play_fun = cns.play_boxing, parallel = False, eval_mode = False, elitism : int = 5, **kwargs):
     """
         This function should provides the complete wrapper for everything.
         It should be configurable from a json or something like this.
@@ -93,42 +95,56 @@ def play(player_class = ind.RandomIndividual, matchmaking_fun = mmk.matches, pla
     lam = 400 # lambda for the probability of winning
     k = 20 # k for the constant in the elo update
 
-    n = 60 # number of individuals. please keep it a multiple of 2 for now
+    t_k = 5 # k for the tournament selection
 
-    if issubclass(player_class, DQNAgent):
-        players = [DQNAgent.load(os.path.join(INDIVIDUALS_DIR, "individual1.pth")) if np.random.random() > 0.5 else DQNAgent.load(os.path.join(INDIVIDUALS_DIR, "individual2.pth")) for _ in range(n)]
-        for i in range (len(players)):
-            players[i].mutate()
-    else:
-        players = [player_class() for _ in range (n)]
-    """
+    n = 10 # number of individuals. please keep it a multiple of 2 for now
+
     if player_class == DQNAgent:
         env = kwargs["env"]
-        players = [player_class(n_actions = env.action_space.n, n_observations = env.observation_space.shape[0]) for _ in range (n)]
+        players = [DQNAgent(n_actions = env.action_space.n, n_observations = env.observation_space.shape[0]) for _ in range (n)]
+    elif player_class == GNGDQNAgent:
+        env = kwargs["env"]
+        players = [GNGDQNAgent(DQNAgent(n_actions = env.action_space.n, n_observations = env.observation_space.shape[0]), DQNAgent(n_actions = env.action_space.n, n_observations = env.observation_space.shape[0])) for _ in range (n)]
     else:
         players = [player_class() for _ in range (n)]
-    """
-    number_of_rounds = 200
+
+    number_of_iterations = 5
+
+    number_of_rounds = 50
 
     render_mode = "non-human"
 
     # --- ACTUAL GAME ---
     # please note that the actual game played could be anything. It should be sufficient to change the play_fun 
 
-    for r in tqdm(range (number_of_rounds), desc="Tournament on going", unit="round"):
-        if parallel:
-            parallel_round(players = players, matchmaking_fun= matchmaking_fun, play_fun = play_fun, render_mode = render_mode, eval_mode = eval_mode, k = k, lam = lam, n_jobs=-1, **kwargs) #fixed to used the maximum number of jobs
-        else:
-            round(players = players, matchmaking_fun= matchmaking_fun, play_fun = play_fun, render_mode = render_mode, eval_mode = eval_mode, k = k, lam = lam, **kwargs)
+    for iteration in range (number_of_iterations):
+        # --- ONLINE OPTIMIZATION (RL or whatever) --  
+        for r in tqdm(range (number_of_rounds), desc="Tournament on going", unit="round"):
+            if parallel:
+                parallel_round(players = players, matchmaking_fun = matchmaking_fun, play_fun = play_fun, render_mode = render_mode, eval_mode = eval_mode, k = k, lam = lam, n_jobs=-1, **kwargs) #fixed to used the maximum number of jobs
+            else:
+                round(players = players, matchmaking_fun = matchmaking_fun, play_fun = play_fun, render_mode = render_mode, eval_mode = eval_mode, k = k, lam = lam, **kwargs)
+        
+        # --- SAVING INDIVIDUALS --- 
+        print("Saving and mutating individuals...")
+        for player in players:
+            player.save(os.path.join(INDIVIDUALS_DIR, f"{iteration}_{player.id}.pth"))
+        print("Individuals saved")
 
-    # --- SAVING INDIVIDUALS --- 
-    print("Saving individuals...")
-
-    for player in players:
-        player.save(f"individuals/individual{player.id}.pth")
+        # --- OFFLINE OPTIMIZATION (evolutionary strategy) ---
+        new_players = sorted(players, key = lambda x : x.elo, reverse = True)[elitism:] # elitism is the number of best individuals to keep
+        
+        for i in range (n - elitism):
+            player = match_selection(players, play_fun, t_k) # this selection is based on an empirical montecarlo approach
+            player.mutate() # what about the elo? for now it is kept the same, but it is not really a good idea 
+            new_players.append(player.__class__.load(os.path.join(INDIVIDUALS_DIR, f"{iteration}_{player.id}.pth")))
+        
+        if iteration != number_of_iterations - 1:
+            players = new_players
 
     # --- END ---
     print("It has been a pleasure, bye!")
+    return players
 
 def show_results(path = "individuals/", starting_index = 0, number_of_individuals = 40):
     """

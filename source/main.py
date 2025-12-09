@@ -7,10 +7,11 @@
     This file is used just as final wrapper.
 """
 from source.elo_system.elo_system import play
-from source.games.console import play_boxing
+from source.games.console import play_grab_n_go
 from source.agents.dqn_agent.dqn_agent import DQNAgent
-from source.games.boxing.boxing import BoxingEnv
+from source.agents.grab_n_go_dqn_agent.gng_dqn_agent import GNGDQNAgent
+from source.games.grab_n_go.grab_n_go import GrabNGoEnv
 
 if __name__ == '__main__':
     
-    play(player_class=DQNAgent, play_fun=play_boxing, **{"env" : BoxingEnv(render_mode="non-human")})
+    play(player_class=GNGDQNAgent, play_fun=play_grab_n_go, **{"env" : GrabNGoEnv(render_mode="non-human")})

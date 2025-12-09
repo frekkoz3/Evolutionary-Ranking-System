@@ -47,10 +47,15 @@ BATCH_SIZE = 128
 GAMMA = 0.99
 EPS_START = 0.9
 EPS_END = 0.05
-EPS_DECAY = 60*120*600 # fps * maximum time * minimum number of game to learn
+FPS = 60
+MAXIMUM_TIME = 30
+MINIMUM_N_GAMES = 600
+DEFAULT_N_GAMES_RESET = 50
+EPS_DECAY = FPS*MAXIMUM_TIME*MINIMUM_N_GAMES # fps * maximum time * minimum number of game to learn
 TAU = 0.005
 LR = 3e-4
-REPLAY_SIZE = 60*60 # first 60 seconds of a game
+REPLAY_SECOND = 60
+REPLAY_SIZE = FPS*REPLAY_SECOND # first 60 seconds of a game
 
 class DQNAgent(Individual):
 
@@ -75,14 +80,14 @@ class DQNAgent(Individual):
 
         self.update_t = 0
 
-    def reset(self, percentage = None):
+    def reset(self, percentage = None, **kwargs):
         if percentage == None:
-            self.steps_done -= max(0, 60*120*50) # just to reintroduce a bit of stochasticity
+            self.steps_done -= max(0, FPS*MAXIMUM_TIME*DEFAULT_N_GAMES_RESET) # just to reintroduce a bit of stochasticity
         else:
             self.steps_done = int(EPS_DECAY*percentage)
         self.update_t = 0
 
-    def move(self, state, env, eval_mode = False):
+    def move(self, state, env, eval_mode = False, **kwargs):
         state = torch.tensor(state, dtype=torch.float32, device=self.device)
         sample = random.random()
         eps_threshold = EPS_START - (EPS_START - EPS_END) * (self.steps_done / EPS_DECAY)
@@ -96,7 +101,7 @@ class DQNAgent(Individual):
         else:
             return env.action_space.sample()
     
-    def observe(self, obs, action, reward, next_obs, done):
+    def observe(self, obs, action, reward, next_obs, done, **kwargs):
 
         self.memory.push(
         torch.tensor(obs, dtype=torch.float32),
@@ -106,7 +111,7 @@ class DQNAgent(Individual):
         done
     )
 
-    def update(self):
+    def update(self, **kwargs):
 
         self.update_t += 1
 
@@ -172,7 +177,7 @@ class DQNAgent(Individual):
         torch.save(checkpoint, path)
 
     @classmethod
-    def load(cls, path, device='cpu'):
+    def load(cls, path, device='cuda' if torch.cuda.is_available() else 'cpu'):
         """Load an agent from a saved checkpoint."""
         checkpoint = torch.load(path, map_location=device, weights_only = False)
 
@@ -200,5 +205,4 @@ class DQNAgent(Individual):
                     p.add_(torch.randn_like(p) * scale)
         perturb_model(self.policy_net, scale=policy_scale)
         perturb_model(self.target_net, scale=target_scale)
-        self.reset_elo()
         self.reset(percentage=0.75)

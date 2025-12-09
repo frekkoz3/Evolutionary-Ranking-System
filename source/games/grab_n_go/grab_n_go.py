@@ -21,7 +21,7 @@ from source.games import UserClosingWindowException
 FPS = 60
 FRAME_DELAY = 1 # frame to wait between each decision -> this must be set also in the individual 
 MAXIMUM_TIME = 30 # time in second
-N_OBSTACLES = 5
+N_OBSTACLES = 0
 W = 500
 H = 500
 OBSTACLE_SIZE = 50
@@ -176,20 +176,27 @@ class GrabNGoEnv(gym.Env):
                     return False
             return self.grid.contains(t.get_rect())
         
+        info = {'a1' : a1, 'a2' : a2}
+        
         if legit_movement(self.p1, a1): # This should be tracked in some way
             self.p1.move(a1)
         else:
             self.p1.move(0)
+            info['a1'] = 0
 
         if legit_movement(self.p2, a2):
             self.p2.move(a2)
         else:
             self.p2.move(0)
+            info['a2'] = 0
 
-        new_dist = players_distance(self.p1, self.p2)
+        # -------------------------------
+        # Reward shaping
+        # -------------------------------
+        """new_dist = players_distance(self.p1, self.p2)
 
         reward_p1 += 0.1 if new_dist > old_dist and self.p1.role == 'runner' else -0.1
-        reward_p2 += 0.1 if new_dist > old_dist and self.p2.role == 'runner' else -0.1
+        reward_p2 += 0.1 if new_dist > old_dist and self.p2.role == 'runner' else -0.1"""
 
         # --------------------------------
         # Caught
@@ -208,21 +215,21 @@ class GrabNGoEnv(gym.Env):
         if caught:
             terminated = True
             if self.p1.role == 'catcher':
-                reward_p1 = 1
-                reward_p2 = -1
+                reward_p1 = 10
+                reward_p2 = -10
             else:
-                reward_p1 = -1
-                reward_p2 = 1
+                reward_p1 = -10
+                reward_p2 = 10
         elif self.time >= FPS*MAXIMUM_TIME//FRAME_DELAY:
             terminated = True
             if self.p2.role == 'catcher':
-                reward_p1 = 1
-                reward_p2 = -1
+                reward_p1 = 10
+                reward_p2 = -10
             else:
-                reward_p1 = -1
-                reward_p2 = 1
+                reward_p1 = -10
+                reward_p2 = 10
 
-        return self.get_obs(), (reward_p1, reward_p2), terminated, False, {}
+        return self.get_obs(), (reward_p1, reward_p2), terminated, False, info
 
     def render(self):
         if self.render_mode != "human":
@@ -245,17 +252,24 @@ class GrabNGoEnv(gym.Env):
             pygame.draw.rect(self.window, OBSTACLE_COLOR, obs)
 
         # Draw players
+        font = pygame.font.Font(None, 32)
         pygame.draw.rect(
             self.window,
             self.p1.get_color(),
             self.p1.get_rect()
         )
+        p1_surf = font.render(f"{self.p1.name}", True, (0, 0, 0))
+        p1_rect = p1_surf.get_rect(center = self.p1.get_rect().center)
+        self.window.blit(p1_surf, p1_rect)
 
         pygame.draw.rect(
             self.window,
             self.p2.get_color(),
             self.p2.get_rect()
         )
+        p2_surf = font.render(f"{self.p2.name}", True, (0, 0, 0))
+        p2_rect = p2_surf.get_rect(center = self.p2.get_rect().center)
+        self.window.blit(p2_surf, p2_rect)
 
         pygame.display.flip()
         self.clock.tick(self.metadata["render_fps"])

@@ -10,6 +10,8 @@
         - play_boxing()
 """
 from source.agents.individual import *
+from source.agents.dqn_agent.dqn_agent import *
+from source.agents.grab_n_go_dqn_agent.gng_dqn_agent import *
 from source.games.boxing.boxing import *
 from source.games.grab_n_go.grab_n_go import *
 
@@ -49,6 +51,8 @@ def play_boxing(players = [RandomIndividual(), RandomIndividual()], render_mode 
             action_b = players[1].move(np.array(obs_b), env, eval_mode)
         
         new_obs, (r_a, r_b), done, truncated, info = env.step((action_a, action_b))
+        action_a = info['a1']
+        action_b = info['a2']
         new_obs_a = env.get_obs('p1')
         new_obs_b = env.get_obs('p2')
 
@@ -106,27 +110,30 @@ def play_grab_n_go(players = [RandomIndividual(), RandomIndividual()], render_mo
         return (0, 0)
 
     while not done:    
-
+        #catcher
         if isinstance(players[0], RandomIndividual) or isinstance(players[0], RealIndividual):
             action_a = players[0].move(env)
         elif isinstance(players[0], LogicalAIIndividual):
             action_a = players[0].move(env, 'p1')
         else:
-            action_a = players[0].move(np.array(obs_a), env, eval_mode)
+            action_a = players[0].move(state = np.array(obs_a), env = env, eval_mode = eval_mode, **{"catcher" : True})
+        # runner
         if isinstance(players[1], RandomIndividual) or isinstance(players[1], RealIndividual):
             action_b = players[1].move(env)
         elif isinstance(players[1], LogicalAIIndividual):
             action_b = players[1].move(env, 'p2')
         else:
-            action_b = players[1].move(np.array(obs_b), env, eval_mode)
+            action_b = players[0].move(state = np.array(obs_b), env = env, eval_mode = eval_mode, **{"catcher" : False})
         
         new_obs, (r_a, r_b), done, truncated, info = env.step((action_a, action_b))
+        action_a = info['a1'] # it could be that it has been modified
+        action_b = info['a2'] # it could be that it has been modified
         new_obs_a = env.get_obs('p1')
         new_obs_b = env.get_obs('p2')
 
         # OBSERVE THE ENVIRONMENT
-        players[0].observe(np.array(obs_a).astype(np.float32), action_a, r_a, np.array(new_obs_a).astype(np.float32), done)
-        players[1].observe(np.array(obs_b).astype(np.float32), action_b, r_b, np.array(new_obs_b).astype(np.float32), done)
+        players[0].observe(np.array(obs_a).astype(np.float32), action_a, r_a, np.array(new_obs_a).astype(np.float32), done, **{"catcher" : True})
+        players[1].observe(np.array(obs_b).astype(np.float32), action_b, r_b, np.array(new_obs_b).astype(np.float32), done, **{"catcher" : False})
 
         # UPDATE THE OBSERVATION
         obs_a = new_obs_a
@@ -134,8 +141,8 @@ def play_grab_n_go(players = [RandomIndividual(), RandomIndividual()], render_mo
 
         # UPDATE THE INDIVIDUALS
         if not eval_mode:
-            players[0].update()
-            players[1].update()
+            players[0].update(**{"catcher" : True})
+            players[1].update(**{"catcher" : False})
 
         try:
             env.render()
