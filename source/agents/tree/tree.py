@@ -29,16 +29,18 @@ ALLOWED_FUNCS = list(OP_ARITY.keys())
 
 # Default terminals (features) shown earlier in the conversation
 DEFAULT_FEATURES = [
-    "dx", "dy", "dist",
-    "time",
-    "speed_x", "speed_y",
-    "nearest_obs_dx", "nearest_obs_dy", "nearest_obs_dist"
+    "x", "y", 
+    "dx", "dy",
+    "remaining_time",
+    "speed",
+    "remaining_x", "remaining_y",
+    "size"
 ]
 
 FEATURE_RANGE = 20
 FEATURE_SCALE = 1
 
-class TreeIndividual(Individual):
+class TreeAgent(Individual):
     """
     Tree-based policy individual.
     Representation:
@@ -58,6 +60,9 @@ class TreeIndividual(Individual):
         self.features = features if features is not None else DEFAULT_FEATURES
         self.trees = [None for _ in range(self.n_trees)]
         self.build_random_policy()
+
+    def need_map(self):
+        return True
 
     # -----------------------------
     #  Tree construction & utils
@@ -141,7 +146,7 @@ class TreeIndividual(Individual):
         # fallback
         return 0.0
 
-    def move(self, obs=None, **kwargs):
+    def move(self, obs=None, eval_mode = False, **kwargs):
         """Returns action id (0..n_trees-1). If obs is None fallback to 0."""
         if obs is None:
             return 0
@@ -312,10 +317,6 @@ class TreeIndividual(Individual):
 
         child._ensure_size_limits()
         return child
-
-    def update(self, **kwargs):
-        """Called at end of match; not used here."""
-        pass
 
     def save(self, path):
         d = os.path.dirname(path) 

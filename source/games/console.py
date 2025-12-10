@@ -11,6 +11,7 @@
 """
 from source.agents.individual import *
 from source.agents.dqn_agent.dqn_agent import *
+from source.agents.grab_n_go_tree_agent.gng_tree_agent import *
 from source.agents.grab_n_go_dqn_agent.gng_dqn_agent import *
 from source.games.boxing.boxing import *
 from source.games.grab_n_go.grab_n_go import *
@@ -23,8 +24,8 @@ def play_boxing(players = [RandomIndividual(), RandomIndividual()], render_mode 
     env = BoxingEnv(render_mode=render_mode)
 
     obs, info = env.reset()
-    obs_a = env.get_obs('p1')
-    obs_b = env.get_obs('p2')
+    obs_a = env.get_obs(perspective = 'p1')
+    obs_b = env.get_obs(perspective = 'p2')
 
     done, truncated = False, False
 
@@ -97,8 +98,8 @@ def play_grab_n_go(players = [RandomIndividual(), RandomIndividual()], render_mo
     env = GrabNGoEnv(render_mode=render_mode)
 
     obs, info = env.reset()
-    obs_a = env.get_obs('p1')
-    obs_b = env.get_obs('p2')
+    obs_a = env.get_obs(perspective = 'p1', map = players[0].need_map())
+    obs_b = env.get_obs(perspective = 'p2', map = players[0].need_map())
 
     done, truncated = False, False
 
@@ -110,11 +111,13 @@ def play_grab_n_go(players = [RandomIndividual(), RandomIndividual()], render_mo
         return (0, 0)
 
     while not done:    
-        #catcher
+        # catcher
         if isinstance(players[0], RandomIndividual) or isinstance(players[0], RealIndividual):
             action_a = players[0].move(env)
         elif isinstance(players[0], LogicalAIIndividual):
             action_a = players[0].move(env, 'p1')
+        elif isinstance(players[0], GNGTreeAgent):
+            action_a = players[0].move(obs = obs_a, **{"catcher" : True})
         else:
             action_a = players[0].move(state = np.array(obs_a), env = env, eval_mode = eval_mode, **{"catcher" : True})
         # runner
@@ -122,18 +125,20 @@ def play_grab_n_go(players = [RandomIndividual(), RandomIndividual()], render_mo
             action_b = players[1].move(env)
         elif isinstance(players[1], LogicalAIIndividual):
             action_b = players[1].move(env, 'p2')
+        elif isinstance(players[0], GNGTreeAgent):
+            action_b = players[0].move(obs = obs_b, **{"catcher" : False})
         else:
             action_b = players[1].move(state = np.array(obs_b), env = env, eval_mode = eval_mode, **{"catcher" : False})
         
         new_obs, (r_a, r_b), done, truncated, info = env.step((action_a, action_b))
         """action_a = info['a1'] # it could be that it has been modified
         action_b = info['a2'] # it could be that it has been modified"""
-        new_obs_a = env.get_obs('p1')
-        new_obs_b = env.get_obs('p2')
+        new_obs_a = env.get_obs('p1', map = players[0].need_map())
+        new_obs_b = env.get_obs('p2', map = players[1].need_map())
 
         # OBSERVE THE ENVIRONMENT
-        players[0].observe(np.array(obs_a).astype(np.float32), action_a, r_a, np.array(new_obs_a).astype(np.float32), done, **{"catcher" : True})
-        players[1].observe(np.array(obs_b).astype(np.float32), action_b, r_b, np.array(new_obs_b).astype(np.float32), done, **{"catcher" : False})
+        players[0].observe(np.array(obs_a).astype(np.float32) if not isinstance(obs_a, dict) else obs_a, action_a, r_a, np.array(new_obs_a).astype(np.float32) if not isinstance(obs_a, dict) else obs_a, done, **{"catcher" : True})
+        players[1].observe(np.array(obs_b).astype(np.float32) if not isinstance(obs_b, dict) else obs_b, action_b, r_b, np.array(new_obs_b).astype(np.float32) if not isinstance(obs_b, dict) else obs_b, done, **{"catcher" : False})
 
         # UPDATE THE OBSERVATION
         obs_a = new_obs_a
@@ -163,4 +168,7 @@ def play_grab_n_go(players = [RandomIndividual(), RandomIndividual()], render_mo
 
 if __name__ == '__main__':
 
-    play_grab_n_go(players=[RealIndividual(), RandomIndividual()], render_mode="human")
+    p1 = GNGTreeAgent(TreeAgent(100, 5), TreeAgent(100, 5))
+    p2 = GNGTreeAgent(TreeAgent(100, 5), TreeAgent(100, 5))
+    play_grab_n_go(players=[p1, p2], render_mode="human")
+    play_grab_n_go(players=[p2, p1], render_mode="human")

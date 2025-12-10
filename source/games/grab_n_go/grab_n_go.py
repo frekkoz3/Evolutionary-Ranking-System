@@ -103,14 +103,18 @@ class GrabNGoEnv(gym.Env):
             p1_x, p1_y = self.p1.get_state()
             p2_x, p2_y = self.p2.get_state()
             if perspective == None:
-                return {'p1_x' : p1_x, 'p1_y' : p1_y, 'p2_x' : p2_x, 'p2_y' : p2_y, 'speed' : self.p1.speed, 'size' : self.p1.size, 'time' : FRAME_DELAY*self.time//FPS, 'maximum_time' : MAXIMUM_TIME}
-            # TO HANDLE THIS !!!
-        if perspective == None:
-            return np.array([*self.p1.get_state(), *self.p2.get_state(), *self.get_obstacles(), time])
-        if perspective == 'p1':
-            return np.array([*self.p1.get_state(), *self.p2.get_state(), *self.get_obstacles(), time])
-        if perspective == 'p2':
-            return np.array([*self.p2.get_state(), *self.p1.get_state(), *self.get_obstacles(), time])
+                return {'p1_x' : p1_x, 'p1_y' : p1_y, 'p2_x' : p2_x, 'p2_y' : p2_y, 'speed' : self.p1.speed, 'size' : self.p1.size, 'time' : FRAME_DELAY*self.time//FPS, 'maximum_time' : MAXIMUM_TIME, 'width' : self.width, 'height' : self.height}
+            if perspective == 'p1':
+                return {'x' : p1_x, 'y' : p1_y, 'dx' : p1_x - p2_x, 'dy' : p1_y - p2_y, 'speed' : self.p1.speed, 'size' : self.p1.size, 'remaining_time' : MAXIMUM_TIME - FRAME_DELAY*self.time//FPS, 'ramining_x' : self.width - p1_x, 'remaining_y' : self.height - p1_y}
+            if perspective == 'p2':
+                return {'x' : p2_x, 'y' : p2_y, 'dx' : p2_x - p1_x, 'dy' : p2_y - p1_y, 'speed' : self.p2.speed, 'size' : self.p2.size, 'remaining_time' : MAXIMUM_TIME - FRAME_DELAY*self.time//FPS, 'ramining_x' : self.width - p2_x, 'remaining_y' : self.height - p2_y}
+        else:
+            if perspective == None:
+                return np.array([*self.p1.get_state(), *self.p2.get_state(), *self.get_obstacles(), time])
+            if perspective == 'p1':
+                return np.array([*self.p1.get_state(), *self.p2.get_state(), *self.get_obstacles(), time])
+            if perspective == 'p2':
+                return np.array([*self.p2.get_state(), *self.p1.get_state(), *self.get_obstacles(), time])
         
     def _not_ok(self, obstacle : pygame.Rect):
             

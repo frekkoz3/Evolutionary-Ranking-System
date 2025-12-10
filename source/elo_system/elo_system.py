@@ -11,6 +11,8 @@ import source.games.console as cns
 import source.agents.individual as ind
 from source.agents.dqn_agent.dqn_agent import DQNAgent
 from source.agents.grab_n_go_dqn_agent.gng_dqn_agent import GNGDQNAgent
+from source.agents.grab_n_go_tree_agent.gng_tree_agent import GNGTreeAgent
+from source.agents.tree.tree import TreeAgent
 import source.elo_system.matchmaking as mmk
 import numpy as np
 from matplotlib import pyplot as plt
@@ -74,7 +76,7 @@ def round(players : list[ind.Individual], matchmaking_fun, play_fun, render_mode
     matches = matchmaking_fun(players)
 
     for match in matches:
-        p1, p2 = match
+        p1, p2 = match if random.random() < 0.5 else (match[1], match[0])
         x = p1.get_elo()
         y = p2.get_elo()
         result = play_fun(players = [p1, p2], render_mode = render_mode, eval_mode = eval_mode, **kwargs)
@@ -99,7 +101,7 @@ def play(player_class = ind.RandomIndividual, matchmaking_fun = mmk.matches, pla
 
     elitism = 5 # number of best individuals to keep
 
-    parallel = False # setting for the parallel  -> parallel is not working rn
+    parallel = True # setting for the parallel  -> parallel is not working rn with the gpu
 
     n = 100 # number of individuals. please keep it a multiple of 2 for now
 
@@ -109,10 +111,13 @@ def play(player_class = ind.RandomIndividual, matchmaking_fun = mmk.matches, pla
     elif player_class == GNGDQNAgent:
         env = kwargs["env"]
         players = [GNGDQNAgent(DQNAgent(n_actions = env.action_space.n, n_observations = env.observation_space.shape[0]), DQNAgent(n_actions = env.action_space.n, n_observations = env.observation_space.shape[0])) for _ in range (n)]
+    elif player_class == GNGTreeAgent:
+        env = kwargs["env"]
+        players = [GNGTreeAgent(TreeAgent(100, env.action_space.n), TreeAgent(100, env.action_space.n)) for _ in range(n)]
     else:
         players = [player_class() for _ in range (n)]
 
-    number_of_iterations = 5
+    number_of_seasons = 5
 
     number_of_rounds = 200
 
@@ -120,7 +125,7 @@ def play(player_class = ind.RandomIndividual, matchmaking_fun = mmk.matches, pla
 
     # --- ACTUAL GAME ---
 
-    for iteration in range (number_of_iterations):
+    for season in range (number_of_seasons):
         # --- ONLINE OPTIMIZATION (RL or whatever) --  
         for r in tqdm(range (number_of_rounds), desc="Tournament on going", unit="round"):
             if parallel:
@@ -131,7 +136,7 @@ def play(player_class = ind.RandomIndividual, matchmaking_fun = mmk.matches, pla
         # --- SAVING INDIVIDUALS --- 
         print("Saving and mutating individuals...")
         for player in players:
-            player.save(os.path.join(INDIVIDUALS_DIR, f"{iteration}_{player.id}.pth"))
+            player.save(os.path.join(INDIVIDUALS_DIR, f"{season}_{player.id}.pth"))
             print(f"{player.id} : {player.elo}")
         print("Individuals saved")
 
@@ -141,12 +146,14 @@ def play(player_class = ind.RandomIndividual, matchmaking_fun = mmk.matches, pla
         for _ in range (n - elitism):
             # tplayer = match_selection(players, play_fun, t_k) # this selection is based on an empirical montecarlo approach
             tplayer = tournament_selection(players, t_k)
-            player = tplayer.__class__.load(os.path.join(INDIVIDUALS_DIR, f"{iteration}_{tplayer.id}.pth"))
-            player.mutate() # what about the elo? for now it is kept the same, but it is not really a good idea 
+            player = tplayer.__class__.load(os.path.join(INDIVIDUALS_DIR, f"{season}_{tplayer.id}.pth"))
+            player.mutate()
             new_players.append(player)
         
-        if iteration != number_of_iterations - 1:
+        if season != number_of_seasons - 1:
             players = new_players
+            for i, p in enumerate(players): # resetting the elos at the end of a season
+                players[i].elo = 100
 
     # --- END ---
     print("It has been a pleasure, bye!")

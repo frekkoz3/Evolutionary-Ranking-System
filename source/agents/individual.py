@@ -49,6 +49,9 @@ class Individual():
     def overwrite(self, other):
         self.__dict__ = copy.deepcopy(other.__dict__)
 
+    def need_map(self):
+        return False # this is a flag passed to tell if a map representation of the state is needed
+
     def observe(self, obs, action, rew, new_obs, done, **kwargs):
         pass
 
