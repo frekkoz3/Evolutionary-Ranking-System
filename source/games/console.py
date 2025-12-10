@@ -44,6 +44,7 @@ def play_boxing(players = [RandomIndividual(), RandomIndividual()], render_mode 
             action_a = players[0].move(env, 'p1')
         else:
             action_a = players[0].move(np.array(obs_a), env, eval_mode)
+            
         if isinstance(players[1], RandomIndividual) or isinstance(players[1], RealIndividual):
             action_b = players[1].move(env)
         elif isinstance(players[1], LogicalAIIndividual):
@@ -99,7 +100,7 @@ def play_grab_n_go(players = [RandomIndividual(), RandomIndividual()], render_mo
 
     obs, info = env.reset()
     obs_a = env.get_obs(perspective = 'p1', map = players[0].need_map())
-    obs_b = env.get_obs(perspective = 'p2', map = players[0].need_map())
+    obs_b = env.get_obs(perspective = 'p2', map = players[1].need_map())
 
     done, truncated = False, False
 
@@ -125,8 +126,8 @@ def play_grab_n_go(players = [RandomIndividual(), RandomIndividual()], render_mo
             action_b = players[1].move(env)
         elif isinstance(players[1], LogicalAIIndividual):
             action_b = players[1].move(env, 'p2')
-        elif isinstance(players[0], GNGTreeAgent):
-            action_b = players[0].move(obs = obs_b, **{"catcher" : False})
+        elif isinstance(players[1], GNGTreeAgent):
+            action_b = players[1].move(obs = obs_b, **{"catcher" : False})
         else:
             action_b = players[1].move(state = np.array(obs_b), env = env, eval_mode = eval_mode, **{"catcher" : False})
         

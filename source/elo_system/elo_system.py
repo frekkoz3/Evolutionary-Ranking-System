@@ -18,6 +18,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 from tqdm import tqdm
 from source.elo_system.evo_utils import *
+from pathlib import Path
 
 from source import INDIVIDUALS_DIR
 import os
@@ -117,9 +118,9 @@ def play(player_class = ind.RandomIndividual, matchmaking_fun = mmk.matches, pla
     else:
         players = [player_class() for _ in range (n)]
 
-    number_of_seasons = 5
+    number_of_seasons = 100
 
-    number_of_rounds = 200
+    number_of_rounds = 100
 
     render_mode = "non-human"
 
@@ -137,7 +138,6 @@ def play(player_class = ind.RandomIndividual, matchmaking_fun = mmk.matches, pla
         print("Saving and mutating individuals...")
         for player in players:
             player.save(os.path.join(INDIVIDUALS_DIR, f"{season}_{player.id}.pth"))
-            print(f"{player.id} : {player.elo}")
         print("Individuals saved")
 
         # --- OFFLINE OPTIMIZATION (evolutionary strategy) ---
@@ -149,7 +149,14 @@ def play(player_class = ind.RandomIndividual, matchmaking_fun = mmk.matches, pla
             player = tplayer.__class__.load(os.path.join(INDIVIDUALS_DIR, f"{season}_{tplayer.id}.pth"))
             player.mutate()
             new_players.append(player)
-        
+
+        if season >= 1:
+            
+            folder = Path(INDIVIDUALS_DIR)
+            for file_path in folder.iterdir():  # non-recursive
+                if file_path.is_file() and file_path.name.startswith(f"{season-1}_"):
+                    file_path.unlink()
+
         if season != number_of_seasons - 1:
             players = new_players
             for i, p in enumerate(players): # resetting the elos at the end of a season
@@ -159,25 +166,21 @@ def play(player_class = ind.RandomIndividual, matchmaking_fun = mmk.matches, pla
     print("It has been a pleasure, bye!")
     return players
 
-def show_results(path = "individuals/", starting_index = 0, number_of_individuals = 40):
+def show_results(players : list[Individual], play_fun, **kwargs):
     """
         This function simply show the final elo of all the individuals.
     """
     elos = []
-    for n in range(starting_index, starting_index + number_of_individuals):
-        t = DQNAgent.load(f"{path}individual{n}.pth")
-        elos.append(t.elo)
-        print(f"Individual {t.id}:\n ELO reached : {t.elo}")
+    players.sort(key = lambda x : x.elo, reverse=True)
+    for player in players:
+        elos.append(player.elo)
     from matplotlib import pyplot as plt
     plt.hist(elos, bins = 10)
     plt.title("ELO histogram")
     plt.show() 
+    play_fun(players=[players[0], RealIndividual()], render_mode="human", eval_mode = True, **kwargs)
+    play_fun(players=[RealIndividual(), players[0]], render_mode="human", eval_mode = True, **kwargs)
     
 if __name__ == '__main__':
 
-    # rows = 10 # number of rows on the chomp board
-    # cols = 10 # number of columns on the chomp board
-    # poison_position = [-1, -1] # position of the poisoned block on the chomp board. [-1, -1] = random
-    
-    # kwargs = { "rows" : rows, "cols" : cols, "poison_position" : poison_position}
-    show_results(starting_index=0, number_of_individuals=60)
+    pass
