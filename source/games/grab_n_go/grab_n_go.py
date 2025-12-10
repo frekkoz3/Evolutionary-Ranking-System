@@ -21,7 +21,7 @@ from source.games import UserClosingWindowException
 FPS = 60
 FRAME_DELAY = 1 # frame to wait between each decision -> this must be set also in the individual 
 MAXIMUM_TIME = 30 # time in second
-N_OBSTACLES = 3
+N_OBSTACLES = 0
 W = 500
 H = 500
 OBSTACLE_SIZE = 50
@@ -105,9 +105,9 @@ class GrabNGoEnv(gym.Env):
             if perspective == None:
                 return {'p1_x' : p1_x, 'p1_y' : p1_y, 'p2_x' : p2_x, 'p2_y' : p2_y, 'speed' : self.p1.speed, 'size' : self.p1.size, 'time' : FRAME_DELAY*self.time//FPS, 'maximum_time' : MAXIMUM_TIME, 'width' : self.width, 'height' : self.height}
             if perspective == 'p1':
-                return {'x' : p1_x, 'y' : p1_y, 'dx' : p1_x - p2_x, 'dy' : p1_y - p2_y, 'speed' : self.p1.speed, 'size' : self.p1.size, 'remaining_time' : MAXIMUM_TIME - FRAME_DELAY*self.time//FPS, 'ramining_x' : self.width - p1_x, 'remaining_y' : self.height - p1_y}
+                return {'x' : p1_x, 'y' : p1_y, 'dx' : p1_x - p2_x, 'dy' : p1_y - p2_y, 'remaining_x' : self.width - p1_x, 'remaining_y' : self.height - p1_y}
             if perspective == 'p2':
-                return {'x' : p2_x, 'y' : p2_y, 'dx' : p2_x - p1_x, 'dy' : p2_y - p1_y, 'speed' : self.p2.speed, 'size' : self.p2.size, 'remaining_time' : MAXIMUM_TIME - FRAME_DELAY*self.time//FPS, 'ramining_x' : self.width - p2_x, 'remaining_y' : self.height - p2_y}
+                return {'x' : p2_x, 'y' : p2_y, 'dx' : p2_x - p1_x, 'dy' : p2_y - p1_y, 'remaining_x' : self.width - p2_x, 'remaining_y' : self.height - p2_y}
         else:
             if perspective == None:
                 return np.array([*self.p1.get_state(), *self.p2.get_state(), *self.get_obstacles(), time])
@@ -192,23 +192,23 @@ class GrabNGoEnv(gym.Env):
             self.p1.move(a1)
         else:
             self.p1.move(0)
-            reward_p1 -= 1
+            """reward_p1 -= 1"""
             info['a1'] = 0
 
         if legit_movement(self.p2, a2):
             self.p2.move(a2)
         else:
             self.p2.move(0)
-            reward_p2 -= 1
+            """reward_p2 -= 1"""
             info['a2'] = 0
 
         # -------------------------------
         # Reward shaping
         # -------------------------------
-        new_dist = players_distance(self.p1, self.p2)
+        """new_dist = players_distance(self.p1, self.p2)
 
         reward_p1 += 0.1 if new_dist > old_dist and self.p1.role == 'runner' else -0.1
-        reward_p2 += 0.1 if new_dist > old_dist and self.p2.role == 'runner' else -0.1
+        reward_p2 += 0.1 if new_dist > old_dist and self.p2.role == 'runner' else -0.1"""
 
         # --------------------------------
         # Caught

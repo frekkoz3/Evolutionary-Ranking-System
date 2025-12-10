@@ -1,0 +1,10 @@
+{
+    "lam" : 400,
+    "k" : 20,
+    "t_k" : 5,
+    "elitism" : 5, 
+    "parallel" : true,
+    "n_individuals" : 100,
+    "n_seasons" : 10,
+    "n_rounds" : 50
+}

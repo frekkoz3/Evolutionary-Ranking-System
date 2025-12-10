@@ -3,7 +3,11 @@ import random
 import math
 import pickle
 import os
+import numpy as np
 from source.agents.individual import Individual
+import graphviz
+os.environ["PATH"] += os.pathsep + "C:/Program Files (x86)/Graphviz/bin" # please change to the location of your graphviz installation
+from source import TREE_DIR
 
 MAX_DEPTH = 6  # practical maximum depth for generated subtrees
 MAX_NODES = 50  # safety cap to avoid runaway bloat
@@ -15,30 +19,36 @@ OP_ARITY = {
     "mul": 2,
     "min": 2,
     "max": 2,
-    "lt": 2,   # returns 1.0 or 0.0
-    "gt": 2,
     "abs": 1,
+    "gt": 2,
+    "lt": 2,
+    "eq": 2,
     "if": 3    # cond, true_branch, false_branch
 }
 
 # Operators that are safe to choose for numeric outputs
-NUMERIC_FUNCS = ["add", "sub", "mul", "min", "max", "abs"]
+NUMERIC_FUNCS = ["add", "sub", "mul", "min", "max", "abs", "sin", "cos"]
 
 # Full allowed set (includes comparators and if)
 ALLOWED_FUNCS = list(OP_ARITY.keys())
 
-# Default terminals (features) shown earlier in the conversation
+# Default terminals (features) 
 DEFAULT_FEATURES = [
     "x", "y", 
     "dx", "dy",
-    "remaining_time",
-    "speed",
-    "remaining_x", "remaining_y",
-    "size"
+    "remaining_x", "remaining_y"
 ]
 
-FEATURE_RANGE = 20
-FEATURE_SCALE = 1
+CONST_RANGE = 20 # Range factor for constant generation
+CONST_SCALE = 1 # Scale factor for constant mutation
+
+CONST_PROB = 0.3 # Probability of selecting a costant instead over a feature
+
+LR = 0.2 # The learning rate is in fact how much to increase or decrease the probability of mutation of a given subtree given positive or negative reward (positive : X(1-LR/2), negative : X(1+LR))
+INITIAL_UPDATE_PROB = 0.5 # This is the initial probability of updating
+MIN_UPDATE_PROB = 0.05 # This is the minimum probability of updating
+MAX_UPDATE_PROB = 0.9 # This is the maximum probability of updating
+EPS = 0.005 # This is how much the probabiity of updating changes each time a reward is collected ()
 
 class TreeAgent(Individual):
     """
@@ -57,9 +67,12 @@ class TreeAgent(Individual):
             random.seed(seed)
 
         self.n_trees = n_trees
+        self.trees_prob = np.ones(self.n_trees) * 1/n_trees
         self.features = features if features is not None else DEFAULT_FEATURES
         self.trees = [None for _ in range(self.n_trees)]
+        self.to_update = False
         self.build_random_policy()
+        self.update_prob = INITIAL_UPDATE_PROB
 
     def need_map(self):
         return True
@@ -69,12 +82,12 @@ class TreeAgent(Individual):
     # -----------------------------
     def random_terminal(self):
         """Return a terminal node: either a feature or a constant."""
-        if random.random() < 0.6 and len(self.features) > 0:
+        if random.random() < 1 - CONST_PROB and len(self.features) > 0:
             name = random.choice(self.features)
             return {"type": "terminal", "name": name}
         else:
             # constant terminal
-            return {"type": "terminal", "name": "const", "value": random.uniform(-2.0, 2.0)}
+            return {"type": "terminal", "name": "const", "value": random.uniform(-CONST_RANGE, CONST_RANGE)}
 
     def random_func_node(self, depth):
         """Create a function node with random op and children."""
@@ -88,9 +101,9 @@ class TreeAgent(Individual):
         """
         Ramped random tree:
           - If depth >= MAX_DEPTH -> terminal
-          - Else choose terminal with some probability
+          - Else choose terminal with some probability proportional to the depth {1 - exp[(2*depth)/MAX_DEPTH]}
         """
-        if depth >= MAX_DEPTH or random.random() < 0.25:
+        if depth >= MAX_DEPTH or random.random() < (1 - math.exp(-(2*depth/MAX_DEPTH))): # with this prob depth must be at least > 1
             return self.random_terminal()
         else:
             return self.random_func_node(depth)
@@ -125,16 +138,22 @@ class TreeAgent(Individual):
             return self.evaluate_tree(children[0], obs) - self.evaluate_tree(children[1], obs)
         if op == "mul":
             return self.evaluate_tree(children[0], obs) * self.evaluate_tree(children[1], obs)
+        if op == "sin":
+            return math.sin(self.evaluate_tree(children[0], obs))
+        if op == "cos":
+            return math.cos(self.evaluate_tree(children[0], obs))
         if op == "min":
             return min(self.evaluate_tree(children[0], obs), self.evaluate_tree(children[1], obs))
         if op == "max":
             return max(self.evaluate_tree(children[0], obs), self.evaluate_tree(children[1], obs))
         if op == "abs":
             return abs(self.evaluate_tree(children[0], obs))
-        if op == "lt":
-            return 1.0 if self.evaluate_tree(children[0], obs) < self.evaluate_tree(children[1], obs) else 0.0
         if op == "gt":
-            return 1.0 if self.evaluate_tree(children[0], obs) > self.evaluate_tree(children[1], obs) else 0.0
+            return 1 if self.evaluate_tree(children[0], obs) > self.evaluate_tree(children[1], obs) else 0
+        if op == "lt":
+            return 1 if self.evaluate_tree(children[0], obs) < self.evaluate_tree(children[1], obs) else 0
+        if op == "eq":
+            return 1 if self.evaluate_tree(children[0], obs) == self.evaluate_tree(children[1], obs) else 0
         if op == "if":
             cond_val = self.evaluate_tree(children[0], obs)
             # treat any cond_val > 0.5 as true
@@ -145,6 +164,31 @@ class TreeAgent(Individual):
 
         # fallback
         return 0.0
+    
+    # --------------------------------
+    # Simil-online-learning
+    # --------------------------------
+    def observe(self, obs, action, rew, new_obs, done, **kwargs):
+        """
+            This is a simple heuristic for computing which subtree leads to the wrong / right decision
+        """
+        # WE COULD ACTUALLY THING AT SOMETHING INTELLIGENT HERE BUT WE HAVE NO TIME SO LET THIS AS IT IS
+        if rew > 0: # we just assume positive reward = good 
+            self.trees_prob[action] *= (1 - LR/2)
+            self.trees_prob.clip(min=0.1/self.n_trees, max = 0.9)
+            self.trees_prob /= np.sum(self.trees_prob)
+            self.update_prob = max(MIN_UPDATE_PROB, self.update_prob - EPS*rew) 
+        if rew < 0:
+            self.trees_prob[action] *= (1 + LR)
+            self.trees_prob.clip(min=0.1/self.n_trees, max = 0.9)
+            self.trees_prob /= np.sum(self.trees_prob)
+            self.update_prob = min(MAX_UPDATE_PROB, self.update_prob - EPS*rew) 
+        if done: self.to_update = True
+
+    def update(self, **kwrags):
+        if self.to_update:
+            self.mutate(mutation_prob=self.update_prob, prob_subtree=0.05, prob_node=0.45, prob_const=0.45)
+            self.to_update = False
 
     def move(self, obs=None, eval_mode = False, **kwargs):
         """Returns action id (0..n_trees-1). If obs is None fallback to 0."""
@@ -208,20 +252,22 @@ class TreeAgent(Individual):
     # -----------------------------
     #  Mutation operators
     # -----------------------------
-    def mutate(self, prob_subtree=0.6, prob_node=0.3, prob_const=0.1):
+    def mutate(self, mutation_prob = 0.5, prob_subtree=0.4, prob_node=0.4, prob_const=0.2):
         """High-level mutation: choose a mutation type by probability."""
         r = random.random()
-        if r < prob_subtree:
-            self.mutate_subtree()
-        elif r < prob_subtree + prob_node:
-            self.mutate_node_operator()
-        else:
-            self.mutate_constant_or_terminal()
-        self._ensure_size_limits()
+        if r < mutation_prob:
+            r = random.random()
+            if r < prob_subtree:
+                self.mutate_subtree()
+            elif r < prob_subtree + prob_node:
+                self.mutate_node_operator()
+            else:
+                self.mutate_constant_or_terminal()
+            self._ensure_size_limits()
 
     def mutate_subtree(self):
         """Pick a random tree and replace a random subtree with a new random subtree."""
-        ti = random.randrange(self.n_trees)
+        ti = np.random.choice(np.arange(0, self.n_trees), p = self.trees_prob)
         root = self.trees[ti]
         paths = self._get_all_paths(root)
         # chose one random path within all the possible paths
@@ -237,7 +283,7 @@ class TreeAgent(Individual):
         Change an operator at a random func node to another operator with compatible arity,
         or change a terminal variable to another feature.
         """
-        ti = random.randrange(self.n_trees)
+        ti = np.random.choice(np.arange(0, self.n_trees), p = self.trees_prob)
         root = self.trees[ti]
         paths = self._get_all_paths(root)
         # filter only func nodes (non-terminals)
@@ -263,7 +309,7 @@ class TreeAgent(Individual):
 
     def mutate_constant_or_terminal(self):
         """Either change a constant value slightly or swap a terminal feature."""
-        ti = random.randrange(self.n_trees)
+        ti = np.random.choice(np.arange(0, self.n_trees), p = self.trees_prob)
         root = self.trees[ti]
         paths = self._get_all_paths(root)
         # choose a terminal node path (including const)
@@ -276,17 +322,17 @@ class TreeAgent(Individual):
         node = self._get_node_by_path(root, chosen)
         if node["name"] == "const":
             # small gaussian perturbation
-            node["value"] += random.gauss(0, FEATURE_SCALE)
+            node["value"] += random.gauss(0, CONST_SCALE)
         else:
             # swap to another feature or to a constant
-            if random.random() < 0.2:
+            if random.random() < CONST_PROB:
                 node["name"] = "const"
-                node["value"] = random.uniform(-FEATURE_RANGE, FEATURE_RANGE)
+                node["value"] = random.uniform(-CONST_RANGE, CONST_RANGE)
             else:
                 node["name"] = random.choice(self.features)
 
     # -----------------------------
-    #  Crossover
+    #  Crossover (not really used but since it is usefull we keep it)
     # -----------------------------
     def crossover(self, other):
         """
@@ -352,3 +398,63 @@ class TreeAgent(Individual):
 
     def __repr__(self):
         return f"<TreeIndividual id={self.id} elo={self.elo} trees={self.n_trees}>"
+    
+    def export_tree_dot(self, ti=0):
+        """
+        Return a graphviz.Digraph object representing tree index ti.
+        """
+        if ti < 0 or ti >= self.n_trees:
+            raise ValueError("Invalid tree index")
+
+        root = self.trees[ti]
+        dot = graphviz.Digraph(comment=f"Tree {ti}")
+        dot.attr("node", shape="box", style="filled", color="#DDEEFF")
+
+        # We'll assign a unique ID to each node (incremental counter)
+        counter = [0]
+
+        def add_node(node):
+            nid = f"n{counter[0]}"
+            counter[0] += 1
+
+            if node["type"] == "terminal":
+                if node["name"] == "const":
+                    label = f"Const\n{node['value']:.2f}"
+                else:
+                    label = node["name"]
+                dot.node(nid, label)
+            else:
+                op = node["op"]
+                dot.node(nid, op)
+                for child in node["children"]:
+                    cid = add_node(child)
+                    dot.edge(nid, cid)
+
+            return nid
+
+        add_node(root)
+        return dot
+
+    def visualize_tree(self, ti = 0, filename = "tree"):
+        dot = self.export_tree_dot(ti)
+        outpath = dot.render(os.path.join(TREE_DIR, filename), format="png", cleanup=True)
+
+    def visualize(self, filename = "tree"):
+        for i in range (self.n_trees):
+            self.visualize_tree(ti = i, filename=f"{i}_{filename}")
+
+    def _reset_probs(self):
+        self.trees_prob = np.ones(self.n_trees)/self.n_trees
+        self.update_prob = INITIAL_UPDATE_PROB
+    
+if __name__ == "__main__":
+
+    random_states = [{f : random.randint(-10, 10) for f in DEFAULT_FEATURES} for i in range (10)]
+    t = TreeAgent()
+    for i, random_state in enumerate(random_states):
+        print(f"{i} : {t.move(random_state)}")
+    t.mutate()
+    for i, random_state in enumerate(random_states):
+        print(f"{i} : {t.move(random_state)}")
+
+    t.visualize()

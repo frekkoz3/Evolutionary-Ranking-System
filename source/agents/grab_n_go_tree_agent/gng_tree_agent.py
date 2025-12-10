@@ -16,6 +16,20 @@ class GNGTreeAgent(Individual):
 
     def need_map(self):
         return True
+    
+    def observe(self, obs, action, rew, new_obs, done, **kwargs):
+        catcher = kwargs["catcher"]
+        if catcher:
+            self.catcher.observe(obs, action, rew, new_obs, done, **kwargs)
+        else:
+            self.runner.observe(obs, action, rew, new_obs, done, **kwargs)
+
+    def update(self, **kwargs):
+        catcher = kwargs["catcher"]
+        if catcher:
+            self.catcher.update()
+        else:
+            self.runner.update()
 
     def move(self, obs, eval_mode : bool = False, **kwargs):
         catcher = kwargs["catcher"]
@@ -37,7 +51,17 @@ class GNGTreeAgent(Individual):
             obj = pickle.load(f)
         return obj
 
-    def mutate(self, prob_subtree=0.6, prob_node=0.3, prob_const=0.1):
+    def mutate(self, mutation_prob = 1, prob_subtree=0.6, prob_node=0.3, prob_const=0.1):
         self.id = Individual._ids.__next__()
-        self.catcher.mutate(prob_subtree=prob_subtree, prob_node=prob_node, prob_const=prob_const)
-        self.runner.mutate(prob_subtree=prob_subtree, prob_node=prob_node, prob_const=prob_const)
+        self.catcher._reset_probs()
+        self.runner._reset_probs()
+        self.catcher.mutate(mutation_prob=mutation_prob, prob_subtree=prob_subtree, prob_node=prob_node, prob_const=prob_const)
+        self.runner.mutate(mutation_prob=mutation_prob, prob_subtree=prob_subtree, prob_node=prob_node, prob_const=prob_const)
+
+    def visualize(self, filename = "tree"):
+        self.catcher.visualize(filename=f"catcher_{filename}")
+        self.runner.visualize(filename=f"runner_{filename}")
+    
+    def view_probs(self):
+        print(f"player {self.id}|\n|-catcher probs : {self.catcher.trees_prob} w/ up prob {self.catcher.update_prob}\n|_runner probs : {self.runner.trees_prob} w/ up prob {self.runner.update_prob}")
+        

@@ -8,11 +8,12 @@
 
     Function list:
         - play_boxing()
+        - play_grab_n_go()
 """
 from source.agents.individual import *
-from source.agents.dqn_agent.dqn_agent import *
-from source.agents.grab_n_go_tree_agent.gng_tree_agent import *
+from source.agents.dqn_agent import *
 from source.agents.grab_n_go_dqn_agent.gng_dqn_agent import *
+from source.agents.grab_n_go_tree_agent.gng_tree_agent import *
 from source.games.boxing.boxing import *
 from source.games.grab_n_go.grab_n_go import *
 
@@ -171,5 +172,17 @@ if __name__ == '__main__':
 
     p1 = GNGTreeAgent(TreeAgent(100, 5), TreeAgent(100, 5))
     p2 = GNGTreeAgent(TreeAgent(100, 5), TreeAgent(100, 5))
-    play_grab_n_go(players=[p1, p2], render_mode="human")
-    play_grab_n_go(players=[p2, p1], render_mode="human")
+    print(p1.catcher.trees_prob)
+    print(p1.runner.trees_prob)
+    print(p2.catcher.trees_prob)
+    print(p2.runner.trees_prob)
+    for i in range (100):
+        res_1 = play_grab_n_go(players=[p1, p2], render_mode="non-human", eval_mode = False)
+        res_2 = play_grab_n_go(players=[p2, p1], render_mode="non-human", eval_mode = False)
+        print(res_1)
+        print(res_2)
+        p1.view_probs()
+        p2.view_probs()
+        print("-------------")
+    play_grab_n_go(players=[p1, p2], render_mode="human", eval_mode = True)
+    play_grab_n_go(players=[p2, p1], render_mode="human", eval_mode = True)

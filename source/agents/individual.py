@@ -67,6 +67,9 @@ class Individual():
     def save(self):
         pass
 
+    def __str__(self):
+        return f"{self.id} : {self.elo}"
+
     @classmethod
     def load(cls):
         pass

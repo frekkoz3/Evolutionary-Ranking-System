@@ -1,6 +1,5 @@
 # TODO LIST
 
-[ ] ADD THE MAPPED GET_OBS and make the TREE AGENT WORK!!!
 [ ] GENERALIZE THE PLAYING FUNCTION IN THE CONSOLE
 [ ] ALL THE HYPERPARAMETERS IN THE DQN AGENT SHOULD BE SOMEHOW CONFIGURED BY A CONFIG
 [ ] DEFINE MUTATIONS AND CROSSOVERS (with placements matches and so on) -> study of how we can mix policies to sped up training

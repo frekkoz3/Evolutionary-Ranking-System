@@ -35,6 +35,25 @@ class BoxingEnv(gym.Env):
         self.W = 300
         self.H = 350
 
+        # Ring bounds:
+        # leave a HUD zone of 50px at top for points
+        self.HUD_HEIGHT = 50
+        self.RING_LEFT = 20
+        self.RING_TOP = 50
+        self.RING_RIGHT = self.W - 20
+        self.RING_BOTTOM = self.H - 20
+
+        self.RING = pygame.Rect(
+                self.RING_LEFT,
+                self.RING_TOP,
+                (self.RING_RIGHT - self.RING_LEFT),
+                (self.RING_BOTTOM - self.RING_TOP)
+            )
+
+        # Ring dimension
+        self.RING_W = self.W - self.RING_LEFT*2
+        self.RING_H = self.H - self.RING_TOP - self.HUD_HEIGHT
+        
         # Boxers
         self.p1 = Boxer(self.W//2 - 50 - 50//2, self.H//2 - self.HUD_HEIGHT, (200, 50, 50), "P1") # - 50 - half its width
         self.p2 = Boxer(self.W//2 + 50 - 50//2, self.H//2 - self.HUD_HEIGHT, (50, 50, 200), "P2")
@@ -72,25 +91,6 @@ class BoxingEnv(gym.Env):
         self.render_mode = render_mode
         self.window = None
         self.clock = None
-
-        # Ring bounds:
-        # leave a HUD zone of 50px at top for points
-        self.HUD_HEIGHT = 50
-        self.RING_LEFT = 20
-        self.RING_TOP = 50
-        self.RING_RIGHT = self.W - 20
-        self.RING_BOTTOM = self.H - 20
-
-        self.RING = pygame.Rect(
-                self.RING_LEFT,
-                self.RING_TOP,
-                (self.RING_RIGHT - self.RING_LEFT),
-                (self.RING_BOTTOM - self.RING_TOP)
-            )
-
-        # Ring dimension
-        self.RING_W = self.W - self.RING_LEFT*2
-        self.RING_H = self.H - self.RING_TOP - self.HUD_HEIGHT
 
         # Timer
         self.time = 0
