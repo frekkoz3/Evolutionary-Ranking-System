@@ -34,6 +34,11 @@ if __name__ == '__main__':
     p1 = DQNAgent.load(os.path.join(DQN_PLAYERS_ROOT, f"p1_{name}_{p1_v}.pth"))
     p2 = DQNAgent.load(os.path.join(DQN_PLAYERS_ROOT, f"p1_{name}_{p2_v}.pth"))
     
+    p1_eps = EPS_START - (EPS_START - EPS_END) * (p1.steps_done / EPS_DECAY)
+    print(p1_eps)
+    p2_eps = EPS_START - (EPS_START - EPS_END) * (p2.steps_done / EPS_DECAY)
+    print(p2_eps)
+
     p3 = RealIndividual()
     if human:
         play_boxing(players=[p1, p3], render_mode="human", eval_mode = True)
