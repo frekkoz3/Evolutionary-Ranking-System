@@ -9,8 +9,8 @@ import graphviz
 os.environ["PATH"] += os.pathsep + "C:/Program Files (x86)/Graphviz/bin" # please change to the location of your graphviz installation
 from source import TREE_DIR
 
-MAX_DEPTH = 6  # practical maximum depth for generated subtrees
-MAX_NODES = 50  # safety cap to avoid runaway bloat
+MAX_DEPTH = 6  # maximum depth for generated subtrees
+MAX_NODES = 30  # cap to avoid runaway bloat
 
 # --- Operators and arities ---
 OP_ARITY = {
@@ -20,10 +20,10 @@ OP_ARITY = {
     "min": 2,
     "max": 2,
     "abs": 1,
-    "gt": 2,
-    "lt": 2,
-    "eq": 2,
-    "if": 3    # cond, true_branch, false_branch
+    "gt": 2,    # 1 if a > b else 0
+    "lt": 2,    # 1 if a < b else 0
+    "eq": 2,    # 1 if a == b else 0
+    "if": 3     # cond, true_branch, false_branch
 }
 
 # Operators that are safe to choose for numeric outputs

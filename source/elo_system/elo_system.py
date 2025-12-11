@@ -42,7 +42,8 @@ class EES():
             self.configs = json.load(f)
 
         self.lam = self.configs["lam"] # lambda for the probability of winning
-        self.k = self.configs["k"] # k for the constant in the elo update
+        self.min_k = self.configs["min_k"] # minimum k for the constant in the elo update
+        self.max_k = self.configs["max_k"] # maximum k for the constant in the elo update
         self.t_k = self.configs["t_k"] # k for the tournament selection or for the match selection
         self.elitism = self.configs["elitism"] # number of best individuals to keep
         self.parallel = self.configs["parallel"] # setting for the parallel  -> parallel is not working rn with the gpu
@@ -74,13 +75,15 @@ class EES():
 
         # --- ACTUAL GAME ---
 
-        for season in range (self.n_seasons):
+        k_step = (self.max_k - self.min_k) / self.n_seasons
+
+        for season in range (442, self.n_seasons):
             # --- ONLINE OPTIMIZATION (RL or whatever) --  
-            for r in tqdm(range (self.n_rounds), desc=f"Season {season} | {self.n_seasons}", unit="round"):
+            for r in tqdm(range (self.n_rounds), desc=f"Season {season + 1} | {self.n_seasons}", unit="round"):
                 if self.parallel:
-                    parallel_round(players = players, matchmaking_fun = matchmaking_fun, play_fun = play_fun, render_mode = render_mode, eval_mode = eval_mode, k = self.k, lam = self.lam, n_jobs=-1, **kwargs) #fixed to used the maximum number of jobs
+                    parallel_round(players = players, matchmaking_fun = matchmaking_fun, play_fun = play_fun, render_mode = render_mode, eval_mode = eval_mode, k = int(k_step*season), lam = self.lam, n_jobs=-1, **kwargs) #fixed to used the maximum number of jobs
                 else:
-                    round(players = players, matchmaking_fun = matchmaking_fun, play_fun = play_fun, render_mode = render_mode, eval_mode = eval_mode, k = self.k, lam = self.lam, **kwargs)
+                    round(players = players, matchmaking_fun = matchmaking_fun, play_fun = play_fun, render_mode = render_mode, eval_mode = eval_mode, k = int(k_step*season), lam = self.lam, **kwargs)
             
             # --- SAVING INDIVIDUALS --- 
             print("Saving and mutating individuals...")
@@ -176,10 +179,16 @@ def round(players : list[Individual], matchmaking_fun, play_fun, render_mode : s
         p1.update_elo(p2.get_id(), x)
         p2.update_elo(p1.get_id(), y)
 
-def show_results(players : list[Individual], play_fun, **kwargs):
+def show_results(players : list[Individual], play_fun, prefix = 449, **kwargs):
     """
         This function simply show the final elo of all the individuals.
     """
+    if players == None:
+        players = []
+        for filename in os.listdir(INDIVIDUALS_DIR):
+            if filename.startswith(prefix):
+                players.append(GNGTreeAgent.load(os.path.join(INDIVIDUALS_DIR, filename)))
+
     elos = []
     players.sort(key = lambda x : x.elo, reverse=True)
     for player in players:
