@@ -1,5 +1,4 @@
 """
-    Final Project for the "Optimization for AI" course.
     Developer : Bredariol Francesco
 
     perturbation.py
@@ -16,7 +15,7 @@ sys.path.append(ROOT)
 from source.games.boxing.boxing import *
 from source.games.console import *
 from source.agents.dqn_agent.dqn_agent import *
-from source.agents.individual import LogicalAIIndividual, RealIndividual
+from source.agents.individual import RealIndividual
 
 import argparse
 

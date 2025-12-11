@@ -1,5 +1,4 @@
 """
-    Final Project for the "Optimization for AI" course.
     Developer : Bredariol Francesco
 
     dqn_agent.py
@@ -58,7 +57,7 @@ REPLAY_SECOND = 60
 REPLAY_SIZE = FPS*REPLAY_SECOND # first 60 seconds of a game
 
 class DQNAgent(Individual):
-
+    
     def __init__(self, n_actions, n_observations, device = 'cuda' if torch.cuda.is_available() else 'cpu', init_elo=100):
         super().__init__(init_elo)
 

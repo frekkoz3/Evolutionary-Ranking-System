@@ -1,3 +1,11 @@
+"""
+    Developer : Bredariol Francesco
+
+    tree.py
+
+    This file contains the implementation of an tree agent.
+"""
+
 import copy
 import random
 import math

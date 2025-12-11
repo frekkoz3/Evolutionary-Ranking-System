@@ -1,3 +1,13 @@
+"""
+    Developer : Bredariol Francesco
+
+    evo_utils.py:
+    
+    This file contains some utils for the elo_system.
+    Functions list:
+        - tournament_selection
+        - match_selection
+"""
 import random 
 from source.agents.individual import *
 

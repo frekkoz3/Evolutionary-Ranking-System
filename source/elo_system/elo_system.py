@@ -1,10 +1,9 @@
 """
-    Final Project for the "Optimization for AI" course.
     Developer : Bredariol Francesco
 
     elo_system.py:
     
-    This file contains the handler for the entire game using the elo_system.
+    This file contains the handler for the entire elo_system.
 """
 import source.elo_system.ELO as elo 
 from source.games.console import *

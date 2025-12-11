@@ -1,3 +1,11 @@
+"""
+    Developer : Bredariol Francesco
+
+    gng_tree_agent.py
+
+    This file contains the implementation of an tree agent for the grab n go environemnt. It is a wrapper of 2 differents tree agents.
+"""
+
 from source.agents.tree.tree import TreeAgent
 from source.agents.individual import *
 

@@ -7,6 +7,8 @@ The main idea is to use the already existing ELO system (based not on a in-game 
 In addiction this system add some extra components by evolutionary strategies, incorporating mutations and crossovers, in order to leverage the exploration (the ELO system should works as a leverage for the exploitation).\
 In the end propers ranks will be added in order to create different "level of difficulty" (such as bronze, silver, gold etc) in order to make the progression for new individual more gradual (since each rank should be increasingly more difficult to reach since individuals populating a rank should be stronger and stronger).
 
+This system want to combine two types of optimization: **ONLINE OPTIMIZATION** (based on Reinforcement Learning or any other online learner algorithm) and **OFFLINE OPTIMIZATION** (based on Evolutionary Strategy). The idea is to use the ELO as a link between these two optimization techniques.
+
 ---
 
 To begin with we must talk about what is the ELO.
@@ -44,24 +46,6 @@ Before putting individuals in the *evolutionary ranking system framework* one sh
 
 ---
 
-### 🧫 MUTATIONS and CROSSOVERS
-
-> Here will be described how mutations and crossovers work in this system.
-
----
-
-## 🏆​ RANKS
-
-> Here will be presented the idea for the ranks (bronze silver gold etc).
-
----
-
-## ​🎯 PLACEMENTS MATCHES and MUTATIONS
-
-> Here will be presented the mechanism of "placements matches" and how it affects crossovers and mutations (if the offspring beat or not the parent).
-
----
-
 ### 📌​ Structure
 
 ```bash
@@ -70,28 +54,35 @@ Evolutionary-Ranking-System
 ├── literature               # Folder containing some papers regarding the argument
 ├── source                   # Folder containing the code
     ├── agents               # Folder for the agents
-        ├── dqn_agent            # Folder containing the dqn agent implementation
+        ├── dqn_agent        # Folder containing the dqn agent implementation
+        ├── gng_dqn_agent    # Folder containing the dqn agent implementation for the grab and go environment
+        ├── gng_tree_agent   # Folder containing the tree agent implementation for the grab and go environment
+        ├── r2d2_agent       # Folder containing the r2d2 agent implementation
+        ├── tree_agent       # Folder containing the tree agent implementation
         └── individual.py    # Python implementation of the individual class
     ├── debug                # Folder for the debugging
         └── profiles         # Folder containing debugging profiles of the code
     
-    ├── experiments          # Folder containing somee experiments
-        ├── dqn_exp          # Folder containing an experimentation of the dqn algorithm
-        └── r2d2_exp         # Folder containing an experimentation on the r2d2 algorithm
-    
     ├── elo_system           # Folder containing the elo system
         ├── elo_system.py    # Python implementation of the wrapper for the entire project
         ├── ELO.py           # Python implementation of the ELO
+        ├── evo_utils.py     # Some utils
         └── matchmaking.py   # Python implementation of the matchmaking system
+
+    ├── experiments          # Folder containing somee experiments
+        ├── dqn_exp          # Folder containing an experimentation of the dqn algorithm
+        └── r2d2_exp         # Folder containing an experimentation on the r2d2 algorithm - NOT IMPLEMENTED
 
     ├── games                # Folder containing the implementation of some desired games as gymnasium environment
         ├── console.py       # Python implementation of the handler between agents and environments
+        ├── grab_n_go.py     # Folder containing the implementation of the "Grab And Go" game as gymnasium environment
         └── boxing           # Folder containing the implementation of a variant of the "boxing 2600" game as gymnasium environment
 
     ├── individuals          # Folder containing individuals files
 
     └── main.py              # Main function to call
 
+├── tree_png                 # Folder containing tree-policies representation (used for tree agents)
 ├── README.md (this file)
 ├── requirements.txt         # Requirements for the virtual environment
 └── todo.md                  # File containing the remaing things to develop
@@ -118,5 +109,13 @@ This is the simplest example of usage of the system.
 3. Run the main:
 
     ```console
-    .../Evolutionary-Ranking-System py -m source.main
+    .../Evolutionary-Ranking-System py -m source.main --test True
+    ```
+
+    The possible flags for the main are:
+
+    ```console
+        --test (bool) : test mode (just visualize results for the grab 'n go benchmark with tree agent (GP))
+        --train (bool) : train mode (train individuals using the configuration saved in the config/config.json for the grab 'n go benchmark with tree agent (GP))
+        --help (bool) : help (resent you here)
     ```

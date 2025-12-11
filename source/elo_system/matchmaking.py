@@ -1,5 +1,4 @@
 """
-    Final Project for the "Optimization for AI" course.
     Developer : Bredariol Francesco
 
     matchmaking.py:

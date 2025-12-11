@@ -1,5 +1,4 @@
 """
-    Final Project for the "Optimization for AI" course.
     Developer : Bredariol Francesco
 
     console.py
@@ -7,7 +6,7 @@
     This file contain the handler for the virtual console to play various games.
 
     Function list:
-        - play_boxing()
+        - play_boxing() [does not support Tree Agents]
         - play_grab_n_go()
 """
 from source.agents.individual import *
@@ -21,6 +20,7 @@ def play_boxing(players = [RandomIndividual(), RandomIndividual()], render_mode 
     """
         This play fun function follows the gym env protocol.
         This is good for RL bot.
+        THIS DOES NOT SUPPORT TREE AGENTS
     """
     env = BoxingEnv(render_mode=render_mode)
 
@@ -41,15 +41,11 @@ def play_boxing(players = [RandomIndividual(), RandomIndividual()], render_mode 
 
         if isinstance(players[0], RandomIndividual) or isinstance(players[0], RealIndividual):
             action_a = players[0].move(env)
-        elif isinstance(players[0], LogicalAIIndividual):
-            action_a = players[0].move(env, 'p1')
         else:
             action_a = players[0].move(np.array(obs_a), env, eval_mode)
             
         if isinstance(players[1], RandomIndividual) or isinstance(players[1], RealIndividual):
             action_b = players[1].move(env)
-        elif isinstance(players[1], LogicalAIIndividual):
-            action_b = players[1].move(env, 'p2')
         else:
             action_b = players[1].move(np.array(obs_b), env, eval_mode)
         
@@ -116,8 +112,6 @@ def play_grab_n_go(players = [RandomIndividual(), RandomIndividual()], render_mo
         # catcher
         if isinstance(players[0], RandomIndividual) or isinstance(players[0], RealIndividual):
             action_a = players[0].move(env)
-        elif isinstance(players[0], LogicalAIIndividual):
-            action_a = players[0].move(env, 'p1')
         elif isinstance(players[0], GNGTreeAgent):
             action_a = players[0].move(obs = obs_a, **{"catcher" : True})
         else:
@@ -125,8 +119,6 @@ def play_grab_n_go(players = [RandomIndividual(), RandomIndividual()], render_mo
         # runner
         if isinstance(players[1], RandomIndividual) or isinstance(players[1], RealIndividual):
             action_b = players[1].move(env)
-        elif isinstance(players[1], LogicalAIIndividual):
-            action_b = players[1].move(env, 'p2')
         elif isinstance(players[1], GNGTreeAgent):
             action_b = players[1].move(obs = obs_b, **{"catcher" : False})
         else:

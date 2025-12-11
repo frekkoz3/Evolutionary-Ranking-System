@@ -1,5 +1,4 @@
 """
-    Final Project for the "Optimization for AI" course.
     Developer : Bredariol Francesco
 
     individual.py:
@@ -12,7 +11,6 @@
         - Individual
         - RealIndividual
         - RandomIndividual
-        - GeneticPolicyIndividual
 """
 
 from itertools import count
@@ -73,116 +71,6 @@ class Individual():
     @classmethod
     def load(cls):
         pass
-
-import numpy as np
-import copy
-from itertools import count
-
-class LogicalAIIndividual:
-    _ids = count(0)
-
-    def __init__(self, init_elo=100, lev = 1):
-        self.elo = init_elo
-        self.id = next(LogicalAIIndividual._ids)
-        self.lev = lev
-        self.n_matches = 0
-
-        # Tuning thresholds (you can tweak them after testing)
-        self.short_range = 10
-        self.mid_range   = 30
-        self.dodge_distance = 50
-
-        # randomness
-        self.random_move_prob  = 0.10
-        self.random_punch_prob = 0.05
-
-    def get_elo(self): return self.elo
-    def get_id(self): return self.id
-    
-    def update_elo(self, opponent_id, new_elo):
-        self.elo = max(new_elo, 0)
-        self.n_matches += 1
-
-    def overwrite(self, other):
-        self.__dict__ = copy.deepcopy(other.__dict__)
-
-    def observe(self, obs, action, rew, new_obs, done, **kwargs): pass
-    def update(self, **kwargs): pass
-    def save(self, **kwargs): pass
-
-    # -----------------------------------------------------------------
-    # MOVE FUNCTION WITH SHORT / MID / LONG PUNCH LOGIC
-    # -----------------------------------------------------------------
-    def move(self, env, perspective, **kwargs):
-        """
-            This is a simple yet effective bot. It has some level of difficulty tunable from 1 to 3.
-        """
-        
-        self_xc, self_yc, opp_xc, opp_yc, opp_state = env._get_logical_info(perspective)
-
-        if self.lev == 1:
-            return np.random.randint(0, 8)
-        
-        threshold = 0.05
-
-        if self.lev == 2:
-            threshold = 0.5
-
-        # -----------------------
-        # RANDOM MOVEMENT
-        # -----------------------
-        if np.random.rand() < threshold:
-            return np.random.randint(0, 5)  # random movement (0–4)
-
-        # -----------------------
-        # COMPUTE DISTANCES
-        # -----------------------
-        dx = opp_xc - self_xc
-        dy = opp_yc - self_yc
-        dist = np.sqrt(dx*dx + dy*dy)
-
-        # -----------------------
-        # DODGE OPPONENT PUNCH
-        # -----------------------
-        opponent_is_punching = opp_state in [5, 6, 7]
-
-        if opponent_is_punching and dist < self.dodge_distance:
-            # dodge vertically to avoid being predictable
-            return 1 if np.random.rand() < 0.5 else 2
-
-        # -----------------------
-        # SELECT PUNCH TYPE
-        # -----------------------
-        if dist < self.short_range:
-            # Short punch (closest)
-            if np.random.rand() < self.random_punch_prob:
-                return np.random.randint(5, 8)
-            return 5
-
-        if dist < self.mid_range:
-            # Mid-range punch
-            if np.random.rand() < self.random_punch_prob:
-                return np.random.randint(5, 8)
-            return 6
-
-        if dist < self.mid_range * 1.5:
-            # Long-range punch (if slightly further)
-            if np.random.rand() < self.random_punch_prob:
-                return np.random.randint(5, 8)
-            return 7
-
-        # -----------------------
-        # MOVE TOWARD OPPONENT
-        # -----------------------
-        if abs(dx) > abs(dy):
-            return 3 if dx < 0 else 4  # left / right
-        else:
-            return 1 if dy < 0 else 2  # up / down
-
-        # -----------------------
-        # DEFAULT (should not happen)
-        # -----------------------S
-        return 0
 
 class RealIndividual(Individual):
 
