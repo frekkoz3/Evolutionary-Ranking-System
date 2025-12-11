@@ -178,7 +178,7 @@ def round(players : list[Individual], matchmaking_fun, play_fun, render_mode : s
         p1.update_elo(p2.get_id(), x)
         p2.update_elo(p1.get_id(), y)
 
-def show_results(players : list[Individual], play_fun, prefix = 449, **kwargs):
+def show_results(players : list[Individual], play_fun, prefix = "499_", **kwargs):
     """
         This function simply show the final elo of all the individuals.
     """
@@ -188,6 +188,10 @@ def show_results(players : list[Individual], play_fun, prefix = 449, **kwargs):
             if filename.startswith(prefix):
                 players.append(GNGTreeAgent.load(os.path.join(INDIVIDUALS_DIR, filename)))
 
+    if len(players) == 0:
+        print("Guy, check your prefix. You probably gave me a wrong one. Retry!")
+        return 
+    
     elos = []
     players.sort(key = lambda x : x.elo, reverse=True)
     for player in players:

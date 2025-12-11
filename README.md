@@ -1,13 +1,13 @@
 # 🧬​ EVOLUTIONARY RANKING SYSTEM
 
-This is the repo for the final project of the "Optimization for AI" course.
+If you are here for the **OPTIMIZATION FOR AI** course [read here first](#-optimization-for-ai-submission).
 
 The goal of this project is to create a frawmework for a novable optimization method for zero-sum games (and for all problems that can be map into a zero-sum game).\
 The main idea is to use the already existing ELO system (based not on a in-game fitness function but on a statistical off-game fitness function) in order to generate individuals capable of playing always better and better (until the reach the global optimum that we could call "meta" in this scenario).\
 In addiction this system add some extra components by evolutionary strategies, incorporating mutations and crossovers, in order to leverage the exploration (the ELO system should works as a leverage for the exploitation).\
 In the end propers ranks will be added in order to create different "level of difficulty" (such as bronze, silver, gold etc) in order to make the progression for new individual more gradual (since each rank should be increasingly more difficult to reach since individuals populating a rank should be stronger and stronger).
 
-This system want to combine two types of optimization: **ONLINE OPTIMIZATION** (based on Reinforcement Learning or any other online learner algorithm) and **OFFLINE OPTIMIZATION** (based on Evolutionary Strategy). The idea is to use the ELO as a link between these two optimization techniques.
+This system want to combine two types of optimization: **ONLINE OPTIMIZATION** (based on Reinforcement Learning or any other online learning algorithm) and **OFFLINE OPTIMIZATION** (based on Evolutionary Strategy). The idea is to use the **ELO as link** between these two optimization techniques.
 
 ---
 
@@ -37,8 +37,8 @@ Now let's talk about individuals.
 ## 👾​ INDIVIDUALS
 
 Inidivduals can be essentialy whatever.\
-The main idea is that individuals must follows the Individual Protocol descripted in the **'individual.py'** file.\
-Individuals may differs based on the benchmark. For example, in the Atari world it has seens to use individuals that are in fact RL algorithm, while one can think of GP individuals for other benchmarks.
+The main idea is that individuals must follows the Individual Protocol descripted in the **individual.py** file.\
+Individuals may differs with relativity to the benchmark. For example, in the Atari world it has sense to use individuals that are in fact RL algorithm, while one can think of GP individuals for other benchmarks.
 
 Individual must be able to perform some mutations (even trivial ones) and possibly crossover (even if this is not mandatory).
 
@@ -119,3 +119,16 @@ This is the simplest example of usage of the system.
         --train (bool) : train mode (train individuals using the configuration saved in the config/config.json for the grab 'n go benchmark with tree agent (GP))
         --help (bool) : help (resent you here)
     ```
+
+---
+
+### 📌 OPTIMIZATION FOR AI SUBMISSION
+
+If you see this project as submission for the Optimization for AI course, there are a few things to point out:
+
+1. The **system is fully working** (in the sense that all the parts are connected and functional).
+2. Both **benchmarks** (boxing with DQNAgent and grab and go with both GNGDQNAgent and GNGTreeAgent) **does not produce results**. Since the deadline is really close I could not lose any more time on the online-optimization part **I decided to study what does not work** instead of trying to fix it.
+3. A sad thing is that, even if the "Grab And Go" environment was intented as fallback benchmark, it ended up being messier than the original "Boxing" environment. For this I decided to try a **last training on the "Boxing" enviornement**, in order to provide something prettier to test in the presentation. This wil take me the weekend (but **it will just be used in the presentation**).
+4. For this submission, other than the code, it will be possible to try to play against the "best" tree-individual found so far in the "Grab And Go" environment. **It is bad. Please don't judge it, it's just a tree**. This will be switched to the "best" individual found so far in the "Boxing" environment once the last training is finished.
+5. In addiction, but I will present it better during the exam, there is already the idea to integrate the project of an other student (@emanueletoso) into the system. It should work pretty well.
+6. **IF YOU HAVE PROBLEM WITH GRAPHVIZ** you can either: just look at the tree representation in the "tree" folder (it is the "best" tree-individual png representation), or install graphviz and follow their documentation.

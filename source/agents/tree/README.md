@@ -94,4 +94,4 @@ When a reward is collected:
 
 Make sure Graphviz is installed and available on PATH.
 
-This tree implementation makes it possible to visualize the policy structure via png. Once you use the individual.visualize() method you can find the png in the tree folder.
+This tree implementation makes it possible to visualize the policy structure via png. Once you use the individual.visualize() method you can find the png in the tree folder. Each tree is visualizable as one tree representation for each possible action (the prefix of the tree png is the action of that tree representation).
