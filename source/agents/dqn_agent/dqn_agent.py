@@ -52,7 +52,7 @@ MINIMUM_N_GAMES = 600
 DEFAULT_N_GAMES_RESET = 50
 EPS_DECAY = FPS*MAXIMUM_TIME*MINIMUM_N_GAMES # fps * maximum time * minimum number of game to learn
 TAU = 0.005
-LR = 3e-4
+LR = 3e-3
 REPLAY_SECOND = 60
 REPLAY_SIZE = FPS*REPLAY_SECOND # first 60 seconds of a game
 
@@ -68,6 +68,9 @@ class DQNAgent(Individual):
 
         self.policy_net = DQN(self.n_observations, self.n_actions).to(device)
         self.target_net = DQN(self.n_observations, self.n_actions).to(device)
+        self.policy_net.train()
+        self.target_net.eval()
+
         self.target_net.load_state_dict(self.policy_net.state_dict())
 
         self.optimizer = optim.AdamW(self.policy_net.parameters(), lr=LR, amsgrad=True)
@@ -104,7 +107,7 @@ class DQNAgent(Individual):
 
         self.memory.push(
         torch.tensor(obs, dtype=torch.float32),
-        torch.tensor([action], dtype=torch.long),
+        torch.tensor(action, dtype=torch.long),
         torch.tensor([reward], dtype=torch.float32),
         torch.tensor(next_obs, dtype=torch.float32),
         done
@@ -140,7 +143,10 @@ class DQNAgent(Individual):
         # Compute target Q-values
         # ------------------------------
         with torch.no_grad():
-            next_q_values = self.target_net(next_state_batch).max(dim=1)[0]  # [B]
+            self.policy_net.eval() # This is needed if I'll ever add some dropout or other in-train techinques
+            next_actions = self.policy_net(next_state_batch).argmax(dim=1) # B
+            self.policy_net.train()
+            next_q_values = self.target_net(next_state_batch).gather(1, next_actions.unsqueeze(1)).squeeze(1) # B
             target_q_values = reward_batch.squeeze(1) + GAMMA * next_q_values * (1 - done_batch) # [B]
 
         # ------------------------------
@@ -159,6 +165,16 @@ class DQNAgent(Individual):
 
         self.optimizer.step()
 
+        # Soft update of the target network
+        with torch.no_grad():
+            for target_param, policy_param in zip(
+                self.target_net.parameters(),
+                self.policy_net.parameters()
+            ):
+                target_param.data.copy_(
+                    TAU * policy_param.data + (1.0 - TAU) * target_param.data
+                )
+        
         return loss.item()
     
     def save(self, path):
@@ -190,6 +206,8 @@ class DQNAgent(Individual):
         agent.policy_net.load_state_dict(checkpoint['policy_state_dict'])
         agent.target_net.load_state_dict(checkpoint['target_state_dict'])
         agent.optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+        agent.policy_net.train()
+        agent.target_net.eval()
         agent.steps_done = checkpoint['steps_done']
 
         return agent

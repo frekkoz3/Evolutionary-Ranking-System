@@ -24,7 +24,7 @@ if __name__ == '__main__':
     env = BoxingEnv(render_mode)
     obs, _ = env.reset()
 
-    name = "boxing"
+    name = "boxing1"
     
     n_observations = env.observation_space.shape[0]
     n_actions = env.action_space.n
